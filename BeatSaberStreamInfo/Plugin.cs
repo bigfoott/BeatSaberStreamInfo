@@ -26,72 +26,91 @@ namespace BeatSaberStreamInfo
         {
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+
+            if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "UserData")))
+                Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "UserData"));
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            if (!File.Exists(Path.Combine(dir, "Combo.txt")))
+                File.WriteAllText(Path.Combine(dir, "Combo.txt"), "0");
+            if (!File.Exists(Path.Combine(dir, "Multiplier.txt")))
+                File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), "1x");
+            if (!File.Exists(Path.Combine(dir, "Notes.txt")))
+                File.WriteAllText(Path.Combine(dir, "Notes.txt"), "0/0 (0%)");
+            if (!File.Exists(Path.Combine(dir, "Progress.txt")))
+                File.WriteAllText(Path.Combine(dir, "Progress.txt"), "");
+            if (!File.Exists(Path.Combine(dir, "Score.txt")))
+                File.WriteAllText(Path.Combine(dir, "Score.txt"), "0");
         }
         
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
         {
-            ats = Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
-            bmdata = Resources.FindObjectsOfTypeAll<BeatmapDataModel>().FirstOrDefault();
-            spawncontroller = Resources.FindObjectsOfTypeAll<BeatmapObjectSpawnController>().FirstOrDefault();
-            
-            var score = UnityEngine.Object.FindObjectOfType<ScoreController>();
-            if (score != null)
+            if (arg1.buildIndex == 5)
             {
-                score.comboDidChangeEvent += OnComboChange;
-                score.multiplierDidChangeEvent += OnMultiplierChange;
-                score.noteWasMissedEvent += OnNoteMiss;
-                score.noteWasCutEvent +=  OnNoteCut;
+                ats = Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
+                bmdata = Resources.FindObjectsOfTypeAll<BeatmapDataModel>().FirstOrDefault();
+                spawncontroller = Resources.FindObjectsOfTypeAll<BeatmapObjectSpawnController>().FirstOrDefault();
 
-                File.WriteAllText(Path.Combine(dir, "Combo.txt"), "0");
-                File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), "1x");
-                totalhit = 0;
+                var score = UnityEngine.Object.FindObjectOfType<ScoreController>();
+                if (score != null)
+                {
+                    score.comboDidChangeEvent += OnComboChange;
+                    score.multiplierDidChangeEvent += OnMultiplierChange;
+                    score.noteWasMissedEvent += OnNoteMiss;
+                    score.noteWasCutEvent += OnNoteCut;
+                    score.scoreDidChangeEvent += OnScoreChange;
+
+                    string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
+                    string output = "0:00/" + totaltime + " (0%)";
+
+                    File.WriteAllText(Path.Combine(dir, "Combo.txt"), "0");
+                    File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), "1x");
+                    File.WriteAllText(Path.Combine(dir, "Notes.txt"), "0/" + bmdata.beatmapData.notesCount);
+                    File.WriteAllText(Path.Combine(dir, "Progress.txt"), output);
+                    File.WriteAllText(Path.Combine(dir, "Score.txt"), "0");
+                    totalhit = 0;
+                }
             }
 
         }
-
-
-        public void OnComboChange(int c)
+         
+        private void OnComboChange(int c)
         {
             File.WriteAllText(Path.Combine(dir, "Combo.txt"), "" + c);
         }
 
-        public void OnMultiplierChange(int c, float f)
+        private void OnMultiplierChange(int c, float f)
         {
             File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), c + "x");
         }
 
-        public void OnNoteMiss(NoteData data, int c)
+        private void OnNoteMiss(NoteData data, int c)
         {
             File.WriteAllText(Path.Combine(dir, "Combo.txt"), "0");
             File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), "1x");
         }
 
-        public void OnNoteCut(NoteData data, NoteCutInfo nci, int c)
+        private void OnNoteCut(NoteData data, NoteCutInfo nci, int c)
         {
             if (bmdata != null)
             {
                 totalhit++;
                 int total = bmdata.beatmapData.notesCount;
-                File.WriteAllText(Path.Combine(dir, "Notes.txt"), totalhit + "/" + total);
+                File.WriteAllText(Path.Combine(dir, "Notes.txt"), totalhit + "/" + total + " (" + ((totalhit/total) * 100).ToString("N0") + "%)");
             }
         }
 
-        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
+        private void OnScoreChange(int c)
         {
+            File.WriteAllText(Path.Combine(dir, "Score.txt"), "" + c);
         }
+
+        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1) { }
 
         public void OnApplicationQuit()
         {
             SceneManager.activeSceneChanged -= SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
-        }
-
-        public void OnLevelWasLoaded(int level)
-        {
-        }
-
-        public void OnLevelWasInitialized(int level)
-        {
         }
 
         public void OnUpdate()
@@ -113,15 +132,11 @@ namespace BeatSaberStreamInfo
             {
                 lastDuration = "";
                 File.WriteAllText(Path.Combine(dir, "Progress.txt"), "");
-
-                File.WriteAllText(Path.Combine(dir, "Combo.txt"), "0");
-                File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), "1x");
             }
-
         }
 
-        public void OnFixedUpdate()
-        {
-        }
+        public void OnFixedUpdate() { }
+        public void OnLevelWasLoaded(int level) { }
+        public void OnLevelWasInitialized(int level) { }
     }
 }
