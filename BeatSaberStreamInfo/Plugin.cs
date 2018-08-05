@@ -15,12 +15,12 @@ namespace BeatSaberStreamInfo
         public string Version => "1.0";
 
         AudioTimeSyncController ats;
-        BeatmapData bmdata;
+        BeatmapDataModel bmdata;
         BeatmapObjectSpawnController spawncontroller;
 
         private readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
-
         string lastDuration;
+        int totalhit;
 
         public void OnApplicationStart()
         {
@@ -31,7 +31,7 @@ namespace BeatSaberStreamInfo
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
         {
             ats = Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
-            //bmdata = Resources.FindObjectsOfTypeAll<BeatmapData>().FirstOrDefault();
+            bmdata = Resources.FindObjectsOfTypeAll<BeatmapDataModel>().FirstOrDefault();
             spawncontroller = Resources.FindObjectsOfTypeAll<BeatmapObjectSpawnController>().FirstOrDefault();
             
             var score = UnityEngine.Object.FindObjectOfType<ScoreController>();
@@ -40,9 +40,11 @@ namespace BeatSaberStreamInfo
                 score.comboDidChangeEvent += OnComboChange;
                 score.multiplierDidChangeEvent += OnMultiplierChange;
                 score.noteWasMissedEvent += OnNoteMiss;
+                score.noteWasCutEvent +=  OnNoteCut;
 
                 File.WriteAllText(Path.Combine(dir, "Combo.txt"), "0");
                 File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), "1x");
+                totalhit = 0;
             }
 
         }
@@ -62,6 +64,16 @@ namespace BeatSaberStreamInfo
         {
             File.WriteAllText(Path.Combine(dir, "Combo.txt"), "0");
             File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), "1x");
+        }
+
+        public void OnNoteCut(NoteData data, NoteCutInfo nci, int c)
+        {
+            if (bmdata != null)
+            {
+                totalhit++;
+                int total = bmdata.beatmapData.notesCount;
+                File.WriteAllText(Path.Combine(dir, "Notes.txt"), totalhit + "/" + total);
+            }
         }
 
         private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
