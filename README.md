@@ -1,0 +1,1 @@
+Plugin to output certain info about the game to .txt files to be displayed on stream.
