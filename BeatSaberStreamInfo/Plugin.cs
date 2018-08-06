@@ -58,7 +58,19 @@ namespace BeatSaberStreamInfo
                 var score = UnityEngine.Object.FindObjectOfType<ScoreController>();
                 var setupData = Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
 
-                if (score != null && bmdata != null && ats != null && setupData != null)
+                if (setupData != null)
+                {
+                    var level = setupData.difficultyLevel.level;
+                    string songname = level.songName;
+                    if (level.songSubName != "")
+                        songname += " by " + level.songSubName;
+                    if (level.songAuthorName != "")
+                        songname += " - " + level.songAuthorName;
+                    
+                    File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "          ");
+                }
+
+                if (score != null && bmdata != null && ats != null)
                 {
                     score.comboDidChangeEvent += OnComboChange;
                     score.multiplierDidChangeEvent += OnMultiplierChange;
@@ -68,13 +80,6 @@ namespace BeatSaberStreamInfo
 
                     string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
                     string output = "0:00/" + totaltime + " (0%)";
-
-                    var level = setupData.difficultyLevel.level;
-                    string songname = level.songName;
-                    if (level.songSubName != "")
-                        songname += " by " + level.songSubName;
-                    if (level.songAuthorName != "")
-                        songname += " - " + level.songAuthorName;
 
                     combo = 0;
                     multiplier = 1;
@@ -88,7 +93,6 @@ namespace BeatSaberStreamInfo
                     File.WriteAllText(Path.Combine(dir, "Notes.txt"), "0/" + notes_total); //
                     File.WriteAllText(Path.Combine(dir, "Progress.txt"), output);
                     File.WriteAllText(Path.Combine(dir, "Score.txt"), "0"); //
-                    File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "     ");
                 }
             }
         }
