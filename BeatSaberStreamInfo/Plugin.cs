@@ -88,7 +88,7 @@ namespace BeatSaberStreamInfo
                     File.WriteAllText(Path.Combine(dir, "Notes.txt"), "0/" + notes_total); //
                     File.WriteAllText(Path.Combine(dir, "Progress.txt"), output);
                     File.WriteAllText(Path.Combine(dir, "Score.txt"), "0"); //
-                    File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + " ");
+                    File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "     ");
                 }
             }
         }
