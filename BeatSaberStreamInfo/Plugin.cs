@@ -18,8 +18,13 @@ namespace BeatSaberStreamInfo
         BeatmapDataModel bmdata;
 
         private readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
+
         string lastDuration;
-        int totalhit;
+        int combo;
+        int multiplier;
+        int notes_hit;
+        int notes_total;
+        int score;
 
         public void OnApplicationStart()
         {
@@ -71,48 +76,50 @@ namespace BeatSaberStreamInfo
                     if (level.songAuthorName != "")
                         songname += " - " + level.songAuthorName;
 
-                    File.WriteAllText(Path.Combine(dir, "Combo.txt"), "0");
-                    File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), "1x");
-                    File.WriteAllText(Path.Combine(dir, "Notes.txt"), "0/" + bmdata.beatmapData.notesCount);
+                    combo = 0;
+                    multiplier = 1;
+                    notes_hit = 0;
+                    notes_total = bmdata.beatmapData.notesCount;
+                    this.score = 0;
+                    multiplier = 1;
+
+                    File.WriteAllText(Path.Combine(dir, "Combo.txt"), "0"); // 
+                    File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), "1x"); //
+                    File.WriteAllText(Path.Combine(dir, "Notes.txt"), "0/" + notes_total); //
                     File.WriteAllText(Path.Combine(dir, "Progress.txt"), output);
-                    File.WriteAllText(Path.Combine(dir, "Score.txt"), "0");
+                    File.WriteAllText(Path.Combine(dir, "Score.txt"), "0"); //
                     File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname);
-                    totalhit = 0;
                 }
             }
         }
          
         private void OnComboChange(int c)
         {
-            File.WriteAllText(Path.Combine(dir, "Combo.txt"), "" + c);
+            combo = c;
         }
 
         private void OnMultiplierChange(int c, float f)
         {
-            File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), c + "x");
+            multiplier = c;
         }
 
         private void OnNoteMiss(NoteData data, int c)
         {
-            File.WriteAllText(Path.Combine(dir, "Combo.txt"), "0");
-            File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), "1x");
+            combo = 0;
+            multiplier = 1;
         }
 
         private void OnNoteCut(NoteData data, NoteCutInfo nci, int c)
         {
-            if (bmdata != null && nci.allIsOK)
-            {
-                totalhit++;
-                int total = bmdata.beatmapData.notesCount;
-                File.WriteAllText(Path.Combine(dir, "Notes.txt"), totalhit + "/" + total + " (" + ((totalhit * 100 / total)).ToString("N0") + "%)");
-            } 
+            if (nci.allIsOK)
+                notes_hit++;
             else if (!nci.allIsOK)
                 OnNoteMiss(data, c);
         }
         
         private void OnScoreChange(int c)
         {
-            File.WriteAllText(Path.Combine(dir, "Score.txt"), "" + c);
+            score = c;
         }
 
         public void OnApplicationQuit()
@@ -133,13 +140,18 @@ namespace BeatSaberStreamInfo
                 if (lastDuration != output)
                 {
                     lastDuration = output;
+
+                    File.WriteAllText(Path.Combine(dir, "Combo.txt"), "" + combo);
+                    File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), multiplier + "x");
+                    File.WriteAllText(Path.Combine(dir, "Notes.txt"), notes_hit + "/" + notes_total + " (" + ((notes_hit * 100 / notes_total)).ToString("N0") + "%)");
+                    File.WriteAllText(Path.Combine(dir, "Score.txt"), "" + score);
                     File.WriteAllText(Path.Combine(dir, "Progress.txt"), output);
                 }
             }
             else if (lastDuration != "")
             {
                 lastDuration = "";
-                File.WriteAllText(Path.Combine(dir, "Progress.txt"), "");
+                //File.WriteAllText(Path.Combine(dir, "Progress.txt"), "");
             }
         }
 
