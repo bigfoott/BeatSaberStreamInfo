@@ -92,20 +92,20 @@ namespace BeatSaberStreamInfo
 
         private void OnNoteCut(NoteData data, NoteCutInfo nci, int c)
         {
-            if (bmdata != null)
+            if (bmdata != null && nci.allIsOK)
             {
                 totalhit++;
                 int total = bmdata.beatmapData.notesCount;
-                File.WriteAllText(Path.Combine(dir, "Notes.txt"), totalhit + "/" + total + " (" + ((totalhit/total) * 100).ToString("N0") + "%)");
+                File.WriteAllText(Path.Combine(dir, "Notes.txt"), totalhit + "/" + total + " (" + ((totalhit / total) * 100).ToString("N0") + "%)");
             }
+            else if (!nci.allIsOK)
+                OnNoteMiss(data, c);
         }
-
+        
         private void OnScoreChange(int c)
         {
             File.WriteAllText(Path.Combine(dir, "Score.txt"), "" + c);
         }
-
-        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1) { }
 
         public void OnApplicationQuit()
         {
@@ -138,5 +138,6 @@ namespace BeatSaberStreamInfo
         public void OnFixedUpdate() { }
         public void OnLevelWasLoaded(int level) { }
         public void OnLevelWasInitialized(int level) { }
+        private void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1) { }
     }
 }
