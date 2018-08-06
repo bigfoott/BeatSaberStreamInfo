@@ -104,8 +104,8 @@ namespace BeatSaberStreamInfo
             {
                 totalhit++;
                 int total = bmdata.beatmapData.notesCount;
-                File.WriteAllText(Path.Combine(dir, "Notes.txt"), totalhit + "/" + total + " (" + ((totalhit / total) * 100).ToString("N0") + "%)");
-            }
+                File.WriteAllText(Path.Combine(dir, "Notes.txt"), totalhit + "/" + total + " (" + ((totalhit * 100 / total)).ToString("N0") + "%)");
+            } 
             else if (!nci.allIsOK)
                 OnNoteMiss(data, c);
         }
