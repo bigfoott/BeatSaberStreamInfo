@@ -61,11 +61,13 @@ namespace BeatSaberStreamInfo
             List<string> sections = new List<string>{ "Combo", "Multiplier", "Notes", "Progress", "Score", "SongName" };
             foreach (string l in File.ReadAllLines(Path.Combine(dir, "Templates.txt")))
             {
+                if (l.StartsWith("//"))
+                    continue;
                 foreach (string sec in sections)
                 {
                     if (l.StartsWith(sec + "="))
                     {
-                        template.Add(sec, l.Substring(sec.Length + 1));
+                        template.Add(sec, l.Substring(sec.Length + 1).Replace("%nl%", Environment.NewLine));
 
                         sections.Remove(sec);
                         break;
