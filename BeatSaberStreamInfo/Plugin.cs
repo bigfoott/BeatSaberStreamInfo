@@ -14,25 +14,29 @@ namespace BeatSaberStreamInfo
         public string Name => "Beat Saber Stream Info";
         public string Version => "1.0";
 
-        AudioTimeSyncController ats;
-        BeatmapDataModel bmdata;
+        // Used to get info about song time and total duration.
+        private AudioTimeSyncController ats;
 
+        // The directory where all plugin-related files are read from.
         private readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
 
-        Dictionary<string, string> template;
+        // List of string templates.
+        private Dictionary<string, string> template;
 
-        string lastDuration;
-        int combo;
-        int multiplier;
-        int notes_hit;
-        int notes_total;
-        int score;
+        // Values to be written to text files.
+        private string lastDuration;
+        private int combo;
+        private int multiplier;
+        private int notes_hit;
+        private int notes_total;
+        private int score;
 
         public void OnApplicationStart()
         {
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
+            // Check if files and directories exist, and if not, create them with default values.
             if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "UserData")))
                 Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "UserData"));
             if (!Directory.Exists(dir))
@@ -51,7 +55,9 @@ namespace BeatSaberStreamInfo
                 File.WriteAllText(Path.Combine(dir, "SongName.txt"), "");
             if (!File.Exists(Path.Combine(dir, "Templates.txt")))
                 File.WriteAllText(Path.Combine(dir, "Templates.txt"), "Combo=%combo%\nMultiplier=%multiplier%x\nNotes=%hit%/%total% (%percent%)\nProgress=%current%/%total% (%percent%)\nScore=%score%\nSongName=\"%name%\" by %sub% - %authorname%");
-
+            
+            // Fill template variable with values from text file.
+            template = new Dictionary<string, string>();
             List<string> sections = new List<string>{ "Combo=", "Multiplier=", "Notes=", "Progress=", "Score=", "SongName=" };
             foreach (string l in File.ReadAllLines(Path.Combine(dir, "Templates.txt")))
             {
@@ -66,6 +72,7 @@ namespace BeatSaberStreamInfo
                     }
                 }
             }
+            // If value doesnt exist in file, add KVP with empty string as value.
             foreach (string s in sections)
                 if (!template.ContainsKey(s.Substring(0, s.Length - 1)))
                     template.Add(s.Substring(0, s.Length - 1), "");
@@ -75,6 +82,7 @@ namespace BeatSaberStreamInfo
         {
             if (arg1.buildIndex == 5)
             {
+                // Get objects from scene to pull song data from.
                 ats = Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
                 var score = UnityEngine.Object.FindObjectOfType<ScoreController>();
                 var setupData = Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
