@@ -171,7 +171,7 @@ namespace BeatSaberStreamInfo
             SceneManager.activeSceneChanged -= SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
         }
-
+         
         public void OnUpdate()
         {
             if (ats != null)
