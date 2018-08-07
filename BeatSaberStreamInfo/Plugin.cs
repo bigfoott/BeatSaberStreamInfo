@@ -90,7 +90,7 @@ namespace BeatSaberStreamInfo
                             .Replace("%sub%", level.songSubName)
                             .Replace("%author%", level.songAuthorName);
                     
-                    File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "          ");
+                    File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "               ");
                 }
                 if (ats != null)
                 {
@@ -123,13 +123,13 @@ namespace BeatSaberStreamInfo
                 multiplier = 1;
                 
                 if (template["Combo"] != "")
-                    File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "0")); // 
+                    File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "0"));
                 if (template["Multiplier"] != "")
-                    File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "1")); //
+                    File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "1"));
                 if (template["Score"] != "")
-                    File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "0")); //
+                    File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "0"));
                 if (template["Notes"] != "")
-                    File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "0").Replace("%total%", "0").Replace("%percent%", "0%")); //
+                    File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "0").Replace("%total%", "0").Replace("%percent%", "0%"));
             }
         }
          
