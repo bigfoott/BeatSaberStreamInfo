@@ -58,14 +58,14 @@ namespace BeatSaberStreamInfo
             
             // Fill template variable with values from text file.
             template = new Dictionary<string, string>();
-            List<string> sections = new List<string>{ "Combo=", "Multiplier=", "Notes=", "Progress=", "Score=", "SongName=" };
+            List<string> sections = new List<string>{ "Combo", "Multiplier", "Notes", "Progress", "Score", "SongName" };
             foreach (string l in File.ReadAllLines(Path.Combine(dir, "Templates.txt")))
             {
                 foreach (string sec in sections)
                 {
-                    if (l.StartsWith(sec))
+                    if (l.StartsWith(sec + "="))
                     {
-                        template.Add(sec.Substring(0, sec.Length - 1), l.Substring(sec.Length - 1));
+                        template.Add(sec, l.Substring(sec.Length + 1));
 
                         sections.Remove(sec);
                         break;
@@ -74,8 +74,8 @@ namespace BeatSaberStreamInfo
             }
             // If value doesnt exist in file, add KVP with empty string as value.
             foreach (string s in sections)
-                if (!template.ContainsKey(s.Substring(0, s.Length - 1)))
-                    template.Add(s.Substring(0, s.Length - 1), "");
+                if (!template.ContainsKey(s))
+                    template.Add(s, "");
         }
         
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
@@ -106,7 +106,7 @@ namespace BeatSaberStreamInfo
                     if (output != "")
                     {
                         string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                        output
+                        output = output
                             .Replace("%current%", "0:00")
                             .Replace("%total%", totaltime)
                             .Replace("%percent%", "0%");
