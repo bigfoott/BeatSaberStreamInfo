@@ -19,6 +19,8 @@ namespace BeatSaberStreamInfo
 
         private readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
 
+        Dictionary<string, string> template;
+
         string lastDuration;
         int combo;
         int multiplier;
@@ -47,6 +49,26 @@ namespace BeatSaberStreamInfo
                 File.WriteAllText(Path.Combine(dir, "Score.txt"), "0");
             if (!File.Exists(Path.Combine(dir, "SongName.txt")))
                 File.WriteAllText(Path.Combine(dir, "SongName.txt"), "");
+            if (!File.Exists(Path.Combine(dir, "Templates.txt")))
+                File.WriteAllText(Path.Combine(dir, "Templates.txt"), "Combo=%combo%\nMultiplier=%multiplier%x\nNotes=%hit%/%total% (%percent%)\nProgress=%current%/%total% (%percent%)\nScore=%score%\nSongName=\"%name%\" by %sub% - %authorname%");
+
+            List<string> sections = new List<string>{ "Combo=", "Multiplier=", "Notes=", "Progress=", "Score=", "SongName=" };
+            foreach (string l in File.ReadAllLines(Path.Combine(dir, "Templates.txt")))
+            {
+                foreach (string sec in sections)
+                {
+                    if (l.StartsWith(sec))
+                    {
+                        template.Add(sec.Substring(0, sec.Length - 1), l.Substring(sec.Length - 1));
+
+                        sections.Remove(sec);
+                        break;
+                    }
+                }
+            }
+            foreach (string s in sections)
+                if (!template.ContainsKey(s.Substring(0, s.Length - 1)))
+                    template.Add(s.Substring(0, s.Length - 1), "");
         }
         
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
@@ -54,46 +76,60 @@ namespace BeatSaberStreamInfo
             if (arg1.buildIndex == 5)
             {
                 ats = Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
-                bmdata = Resources.FindObjectsOfTypeAll<BeatmapDataModel>().FirstOrDefault();
                 var score = UnityEngine.Object.FindObjectOfType<ScoreController>();
                 var setupData = Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
 
                 if (setupData != null)
                 {
                     var level = setupData.difficultyLevel.level;
-                    string songname = level.songName;
-                    if (level.songSubName != "")
-                        songname += " by " + level.songSubName;
-                    if (level.songAuthorName != "")
-                        songname += " - " + level.songAuthorName;
+
+                    string songname = template["SongName"];
+                    if (songname != "")
+                        songname = songname
+                            .Replace("%name%", level.songName)
+                            .Replace("%sub%", level.songSubName)
+                            .Replace("%author%", level.songAuthorName);
                     
                     File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "          ");
                 }
+                if (ats != null)
+                {
+                    string output = template["Progress"];
+                    if (output != "")
+                    {
+                        string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
+                        output
+                            .Replace("%current%", "0:00")
+                            .Replace("%total%", totaltime)
+                            .Replace("%percent%", "0%");
 
-                if (score != null && bmdata != null && ats != null)
+                        File.WriteAllText(Path.Combine(dir, "Progress.txt"), output);
+                    }
+                }
+                if (score != null)
                 {
                     score.comboDidChangeEvent += OnComboChange;
                     score.multiplierDidChangeEvent += OnMultiplierChange;
                     score.noteWasMissedEvent += OnNoteMiss;
                     score.noteWasCutEvent += OnNoteCut;
                     score.scoreDidChangeEvent += OnScoreChange;
-
-                    string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                    string output = "0:00/" + totaltime + " (0%)";
-
-                    combo = 0;
-                    multiplier = 1;
-                    notes_hit = 0;
-                    notes_total = bmdata.beatmapData.notesCount;
-                    this.score = 0;
-                    multiplier = 1;
-
-                    File.WriteAllText(Path.Combine(dir, "Combo.txt"), "0"); // 
-                    File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), "1x"); //
-                    File.WriteAllText(Path.Combine(dir, "Notes.txt"), "0/" + notes_total); //
-                    File.WriteAllText(Path.Combine(dir, "Progress.txt"), output);
-                    File.WriteAllText(Path.Combine(dir, "Score.txt"), "0"); //
                 }
+
+                combo = 0;
+                multiplier = 1;
+                notes_hit = 0;
+                notes_total = 0;
+                this.score = 0;
+                multiplier = 1;
+                
+                if (template["Combo"] != "")
+                    File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "0")); // 
+                if (template["Multiplier"] != "")
+                    File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "1")); //
+                if (template["Score"] != "")
+                    File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "0")); //
+                if (template["Notes"] != "")
+                    File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "0").Replace("%total%", "0").Replace("%percent%", "0%")); //
             }
         }
          
@@ -111,12 +147,16 @@ namespace BeatSaberStreamInfo
         {
             combo = 0;
             multiplier = 1;
+            notes_total++;
         }
 
         private void OnNoteCut(NoteData data, NoteCutInfo nci, int c)
         {
             if (nci.allIsOK)
+            {
                 notes_hit++;
+                notes_total++;
+            }
             else if (!nci.allIsOK)
                 OnNoteMiss(data, c);
         }
@@ -137,26 +177,30 @@ namespace BeatSaberStreamInfo
             if (ats != null)
             {
                 string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
-                string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
-                string output = time + "/" + totaltime + " (" + percent + "%)";
                 
-                if (lastDuration != output)
+                if (lastDuration != time)
                 {
-                    lastDuration = output;
+                    lastDuration = time;
 
-                    File.WriteAllText(Path.Combine(dir, "Combo.txt"), "" + combo);
-                    File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), multiplier + "x");
-                    File.WriteAllText(Path.Combine(dir, "Notes.txt"), notes_hit + "/" + notes_total + " (" + ((notes_hit * 100 / notes_total)).ToString("N0") + "%)");
-                    File.WriteAllText(Path.Combine(dir, "Score.txt"), "" + score);
-                    File.WriteAllText(Path.Combine(dir, "Progress.txt"), output);
+                    if (template["Combo"] != "")
+                        File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "" + combo)); // 
+                    if (template["Multiplier"] != "")
+                        File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "" + multiplier)); //
+                    if (template["Notes"] != "")
+                        File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "" + notes_hit).Replace("%total%", "" + notes_total).Replace("%percent%", ((notes_hit * 100 / notes_total)).ToString("N0") + "%")); //
+                    if (template["Score"] != "")
+                        File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "" + score)); //
+                    if (template["Progress"] != "")
+                    {
+                        string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
+                        string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0") + "%";
+
+                        File.WriteAllText(Path.Combine(dir, "Progress.txt"), template["Progress"].Replace("%current%", time).Replace("%total%", totaltime).Replace("%percent%", percent)); //
+                    }
                 }
             }
             else if (lastDuration != "")
-            {
                 lastDuration = "";
-                //File.WriteAllText(Path.Combine(dir, "Progress.txt"), "");
-            }
         }
 
         public void OnFixedUpdate() { }
