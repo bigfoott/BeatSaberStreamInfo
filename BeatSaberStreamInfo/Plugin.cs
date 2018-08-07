@@ -54,7 +54,7 @@ namespace BeatSaberStreamInfo
             if (!File.Exists(Path.Combine(dir, "SongName.txt")))
                 File.WriteAllText(Path.Combine(dir, "SongName.txt"), "");
             if (!File.Exists(Path.Combine(dir, "Templates.txt")))
-                File.WriteAllText(Path.Combine(dir, "Templates.txt"), "Combo=%combo%\nMultiplier=%multiplier%x\nNotes=%hit%/%total% (%percent%)\nProgress=%current%/%total% (%percent%)\nScore=%score%\nSongName=\"%name%\" by %sub% - %authorname%");
+                File.WriteAllText(Path.Combine(dir, "Templates.txt"), "Combo=%combo%" + Environment.NewLine + "Multiplier=%multiplier%x" + Environment.NewLine + "Notes=%hit%/%total% (%percent%)" + Environment.NewLine + "Progress=%current%/%total% (%percent%)" + Environment.NewLine + "Score=%score%" + Environment.NewLine + "SongName=\"%name%\" by %sub% - %authorname%");
             
             // Fill template variable with values from text file.
             template = new Dictionary<string, string>();
