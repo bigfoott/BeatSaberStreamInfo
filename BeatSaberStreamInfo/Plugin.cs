@@ -113,6 +113,7 @@ namespace BeatSaberStreamInfo
                 {
                     var level = setupData.difficultyLevel.level;
 
+                    // Replace template placeholders with song data.
                     string songname = template["SongName"];
                     if (songname != "")
                         songname = songname
@@ -124,11 +125,11 @@ namespace BeatSaberStreamInfo
                 }
                 if (ats != null)
                 {
-                    string output = template["Progress"];
-                    if (output != "")
+                    if (template["Progress"] != "")
                     {
+                        // Replace template placeholders with default values and total song time.
                         string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                        output = output
+                        string output = template["Progress"]
                             .Replace("%current%", "0:00")
                             .Replace("%total%", totaltime)
                             .Replace("%percent%", "0%");
@@ -138,6 +139,7 @@ namespace BeatSaberStreamInfo
                 }
                 if (score != null)
                 {
+                    // Hook events.
                     score.comboDidChangeEvent += OnComboChange;
                     score.multiplierDidChangeEvent += OnMultiplierChange;
                     score.noteWasMissedEvent += OnNoteMiss;
@@ -145,6 +147,7 @@ namespace BeatSaberStreamInfo
                     score.scoreDidChangeEvent += OnScoreChange;
                 }
 
+                // Set variables to default values for start of song.
                 combo = 0;
                 multiplier = 1;
                 notes_hit = 0;
@@ -152,6 +155,7 @@ namespace BeatSaberStreamInfo
                 this.score = 0;
                 multiplier = 1;
                 
+                // If template exists, write to file with default values.
                 if (template["Combo"] != "")
                     File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "0"));
                 if (template["Multiplier"] != "")
@@ -163,34 +167,42 @@ namespace BeatSaberStreamInfo
             }
         }
          
+        // Fired when combo changes (not on miss).
         private void OnComboChange(int c)
         {
             combo = c;
         }
 
+        // Fired when multiplier changes (not on miss)
         private void OnMultiplierChange(int c, float f)
         {
             multiplier = c;
         }
 
+        // Fired when note is missed.
         private void OnNoteMiss(NoteData data, int c)
         {
+            // Change combo and multiplier back to default values.
             combo = 0;
             multiplier = 1;
             notes_total++;
         }
 
+        // Fired when note is cut.
         private void OnNoteCut(NoteData data, NoteCutInfo nci, int c)
         {
+            // Good cut
             if (nci.allIsOK)
             {
                 notes_hit++;
                 notes_total++;
             }
-            else if (!nci.allIsOK)
+            // Bad cut (miss)
+            else
                 OnNoteMiss(data, c);
         }
         
+        // Fired when the score changes.
         private void OnScoreChange(int c)
         {
             score = c;
@@ -206,8 +218,14 @@ namespace BeatSaberStreamInfo
         {
             if (ats != null)
             {
+                // Get current time in the song.
                 string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
-                
+
+                /* lastDuration tracks the last time the files were updated.
+                 * If the current time is different from the last stored
+                 * time (changes every second), set the variable to the new
+                 * time and update all files with new values.
+                 */
                 if (lastDuration != time)
                 {
                     lastDuration = time;
