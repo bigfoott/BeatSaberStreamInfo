@@ -76,6 +76,26 @@ namespace BeatSaberStreamInfo
             foreach (string s in sections)
                 if (!template.ContainsKey(s))
                     template.Add(s, "");
+
+            // Set to empty values on game start.
+            if (template["Combo"] != "")
+                File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "0"));
+            if (template["Multiplier"] != "")
+                File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "1"));
+            if (template["Score"] != "")
+                File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "0"));
+            if (template["Notes"] != "")
+                File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "0").Replace("%total%", "0").Replace("%percent%", "0%"));
+            if (template["SongName"] != "")
+                File.WriteAllText(Path.Combine(dir, "SongName.txt"), "");
+            if (template["Progress"] != "")
+            {
+                string output = template["Progress"]
+                    .Replace("%current%", "0:00")
+                    .Replace("%total%", "0:00")
+                    .Replace("%percent%", "0%");
+                File.WriteAllText(Path.Combine(dir, "Progress.txt"), output);
+            }
         }
         
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
