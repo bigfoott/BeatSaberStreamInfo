@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using IllusionPlugin;
@@ -28,7 +27,6 @@ namespace BeatSaberStreamInfo
         private bool InSong;
 
         // Values to be written to text files.
-        private string lastDuration;
         private int combo;
         private int multiplier;
         private int notes_hit;
