@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using IllusionPlugin;
 using System.IO;
+using System.Threading;
 
 namespace BeatSaberStreamInfo
 {
@@ -23,6 +24,9 @@ namespace BeatSaberStreamInfo
         // List of string templates.
         private Dictionary<string, string> template;
 
+        // Bool to tell if in song or not;
+        private bool InSong;
+
         // Values to be written to text files.
         private string lastDuration;
         private int combo;
@@ -31,10 +35,64 @@ namespace BeatSaberStreamInfo
         private int notes_total;
         private int score;
 
+        //New thread to write to files from.
+        HMTask writer;
+
         public void OnApplicationStart()
         {
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+
+            //Initialize HMTaskd.
+            Action job = delegate
+            {
+                while (InSong)
+                {
+                    Console.WriteLine("1");
+                    if (InSong)
+                    {
+                        Console.WriteLine("2");
+                        if (template["Combo"] != "")
+                        {
+                            Console.WriteLine("3");
+                            File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "" + combo)); //
+                            Thread.Sleep(500);
+                        }
+                        if (template["Multiplier"] != "")
+                        {
+                            Console.WriteLine("4");
+                            File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "" + multiplier)); //
+                            Thread.Sleep(500);
+                        }
+                        if (template["Notes"] != "")
+                        {
+                            Console.WriteLine("5");
+                            if (notes_total != 0)
+                                File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "" + notes_hit).Replace("%total%", "" + notes_total).Replace("%percent%", ((notes_hit * 100 / notes_total)).ToString("N0") + "%")); //
+
+                        }
+                        if (template["Score"] != "")
+                        {
+                            Console.WriteLine("6");
+                            File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "" + score)); //
+                            Thread.Sleep(500);
+                        }
+                        if (template["Progress"] != "")
+                        {
+                            Console.WriteLine("7");
+                            string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
+                            string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
+                            string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0") + "%";
+
+                            File.WriteAllText(Path.Combine(dir, "Progress.txt"), template["Progress"].Replace("%current%", time).Replace("%total%", totaltime).Replace("%percent%", percent)); //
+
+                            Thread.Sleep(500);
+                        }
+                    }
+                    Thread.Sleep(5000);
+                }
+            };
+            writer = new HMTask(job);
 
             // Check if files and directories exist, and if not, create them with default values.
             if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "UserData")))
@@ -104,6 +162,9 @@ namespace BeatSaberStreamInfo
         {
             if (arg1.buildIndex == 5)
             {
+                InSong = true;
+                writer.Run();
+
                 // Get objects from scene to pull song data from.
                 ats = Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
                 var score = UnityEngine.Object.FindObjectOfType<ScoreController>();
@@ -120,7 +181,7 @@ namespace BeatSaberStreamInfo
                             .Replace("%name%", level.songName)
                             .Replace("%sub%", level.songSubName)
                             .Replace("%author%", level.songAuthorName);
-                    
+
                     File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "               ");
                 }
                 if (ats != null)
@@ -154,7 +215,7 @@ namespace BeatSaberStreamInfo
                 notes_total = 0;
                 this.score = 0;
                 multiplier = 1;
-                
+
                 // If template exists, write to file with default values.
                 if (template["Combo"] != "")
                     File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "0"));
@@ -164,6 +225,11 @@ namespace BeatSaberStreamInfo
                     File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "0"));
                 if (template["Notes"] != "")
                     File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "0").Replace("%total%", "0").Replace("%percent%", "0%"));
+            }
+            else
+            {
+                InSong = false;
+                writer.Cancel();
             }
         }
          
@@ -213,44 +279,8 @@ namespace BeatSaberStreamInfo
             SceneManager.activeSceneChanged -= SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
         }
-         
-        public void OnUpdate()
-        {
-            if (ats != null)
-            {
-                // Get current time in the song.
-                string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
-
-                /* lastDuration tracks the last time the files were updated.
-                 * If the current time is different from the last stored
-                 * time (changes every second), set the variable to the new
-                 * time and update all files with new values.
-                 */
-                if (lastDuration != time)
-                {
-                    lastDuration = time;
-
-                    if (template["Combo"] != "")
-                        File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "" + combo)); // 
-                    if (template["Multiplier"] != "")
-                        File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "" + multiplier)); //
-                    if (template["Notes"] != "")
-                        File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "" + notes_hit).Replace("%total%", "" + notes_total).Replace("%percent%", ((notes_hit * 100 / notes_total)).ToString("N0") + "%")); //
-                    if (template["Score"] != "")
-                        File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "" + score)); //
-                    if (template["Progress"] != "")
-                    {
-                        string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                        string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0") + "%";
-
-                        File.WriteAllText(Path.Combine(dir, "Progress.txt"), template["Progress"].Replace("%current%", time).Replace("%total%", totaltime).Replace("%percent%", percent)); //
-                    }
-                }
-            }
-            else if (lastDuration != "")
-                lastDuration = "";
-        }
-
+        
+        public void OnUpdate() { }
         public void OnFixedUpdate() { }
         public void OnLevelWasLoaded(int level) { }
         public void OnLevelWasInitialized(int level) { }
