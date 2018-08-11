@@ -41,53 +41,46 @@ namespace BeatSaberStreamInfo
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
-            //Initialize HMTaskd.
+            //Initialize HMTask for writing to files.
             Action job = delegate
             {
                 while (InSong)
                 {
-                    Console.WriteLine("1");
                     if (InSong)
                     {
-                        Console.WriteLine("2");
                         if (template["Combo"] != "")
                         {
-                            Console.WriteLine("3");
                             File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "" + combo)); //
-                            Thread.Sleep(500);
+                            Thread.Sleep(150);
                         }
                         if (template["Multiplier"] != "")
                         {
-                            Console.WriteLine("4");
                             File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "" + multiplier)); //
-                            Thread.Sleep(500);
+                            Thread.Sleep(150);
                         }
                         if (template["Notes"] != "")
                         {
-                            Console.WriteLine("5");
                             if (notes_total != 0)
                                 File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "" + notes_hit).Replace("%total%", "" + notes_total).Replace("%percent%", ((notes_hit * 100 / notes_total)).ToString("N0") + "%")); //
-
+                            Thread.Sleep(150);
                         }
                         if (template["Score"] != "")
                         {
-                            Console.WriteLine("6");
                             File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "" + score)); //
-                            Thread.Sleep(500);
+                            Thread.Sleep(150);
                         }
                         if (template["Progress"] != "")
                         {
-                            Console.WriteLine("7");
                             string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
                             string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
                             string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0") + "%";
 
                             File.WriteAllText(Path.Combine(dir, "Progress.txt"), template["Progress"].Replace("%current%", time).Replace("%total%", totaltime).Replace("%percent%", percent)); //
 
-                            Thread.Sleep(500);
+                            Thread.Sleep(150);
                         }
                     }
-                    Thread.Sleep(5000);
+                    Thread.Sleep(1000);
                 }
             };
             writer = new HMTask(job);
