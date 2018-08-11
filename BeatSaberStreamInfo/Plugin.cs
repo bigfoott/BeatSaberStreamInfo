@@ -26,12 +26,8 @@ namespace BeatSaberStreamInfo
         // Bool to tell if in song or not;
         private bool InSong;
 
-        // Values to be written to text files.
-        private int combo;
-        private int multiplier;
-        private int notes_hit;
-        private int notes_total;
-        private int score;
+        // Object to store all values about the song.
+        private SongInfo info;
 
         //New thread to write to files from.
         HMTask writer;
@@ -40,6 +36,9 @@ namespace BeatSaberStreamInfo
         {
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
+
+            //Initialize SongInfo;
+            info = new SongInfo();
 
             //Initialize HMTask for writing to files.
             Action job = delegate
@@ -50,23 +49,23 @@ namespace BeatSaberStreamInfo
                     {
                         if (template["Combo"] != "")
                         {
-                            File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "" + combo)); //
+                            File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "" + info.combo)); //
                             Thread.Sleep(150);
                         }
                         if (template["Multiplier"] != "")
                         {
-                            File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "" + multiplier)); //
+                            File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "" + info.multiplier)); //
                             Thread.Sleep(150);
                         }
                         if (template["Notes"] != "")
                         {
-                            if (notes_total != 0)
-                                File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "" + notes_hit).Replace("%total%", "" + notes_total).Replace("%percent%", ((notes_hit * 100 / notes_total)).ToString("N0") + "%")); //
+                            if (info.notes_total != 0)
+                                File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "" + info.notes_hit).Replace("%total%", "" + info.notes_total).Replace("%percent%", ((info.notes_hit * 100 / info.notes_total)).ToString("N0") + "%")); //
                             Thread.Sleep(150);
                         }
                         if (template["Score"] != "")
                         {
-                            File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "" + score)); //
+                            File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "" + info.score)); //
                             Thread.Sleep(150);
                         }
                         if (template["Progress"] != "")
@@ -200,22 +199,17 @@ namespace BeatSaberStreamInfo
                 }
 
                 // Set variables to default values for start of song.
-                combo = 0;
-                multiplier = 1;
-                notes_hit = 0;
-                notes_total = 0;
-                this.score = 0;
-                multiplier = 1;
+                info.SetDefault();
 
                 // If template exists, write to file with default values.
                 if (template["Combo"] != "")
-                    File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "0"));
+                    File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "" + info.combo));
                 if (template["Multiplier"] != "")
-                    File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "1"));
+                    File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", info.multiplier + "x"));
                 if (template["Score"] != "")
-                    File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "0"));
+                    File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "" + info.score));
                 if (template["Notes"] != "")
-                    File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "0").Replace("%total%", "0").Replace("%percent%", "0%"));
+                    File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "" + info.notes_hit).Replace("%total%", "" + info.notes_total).Replace("%percent%", "0%"));
             }
             else
             {
@@ -227,22 +221,22 @@ namespace BeatSaberStreamInfo
         // Fired when combo changes (not on miss).
         private void OnComboChange(int c)
         {
-            combo = c;
+            info.combo = c;
         }
 
         // Fired when multiplier changes (not on miss)
         private void OnMultiplierChange(int c, float f)
         {
-            multiplier = c;
+            info.multiplier = c;
         }
 
         // Fired when note is missed.
         private void OnNoteMiss(NoteData data, int c)
         {
             // Change combo and multiplier back to default values.
-            combo = 0;
-            multiplier = 1;
-            notes_total++;
+            info.combo = 0;
+            info.multiplier = 1;
+            info.notes_total++;
         }
 
         // Fired when note is cut.
@@ -251,8 +245,8 @@ namespace BeatSaberStreamInfo
             // Good cut
             if (nci.allIsOK)
             {
-                notes_hit++;
-                notes_total++;
+                info.notes_hit++;
+                info.notes_total++;
             }
             // Bad cut (miss)
             else
@@ -262,7 +256,7 @@ namespace BeatSaberStreamInfo
         // Fired when the score changes.
         private void OnScoreChange(int c)
         {
-            score = c;
+            info.score = c;
         }
 
         public void OnApplicationQuit()
