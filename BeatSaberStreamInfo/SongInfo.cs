@@ -19,6 +19,27 @@ namespace BeatSaberStreamInfo
             SetDefault();
         }
 
+        public string GetVal(string s)
+        {
+            switch (s.ToLower())
+            {
+                case "combo":
+                    return combo.ToString();
+                case "multiplier":
+                    return multiplier.ToString();
+                case "notes_hit":
+                    return notes_hit.ToString();
+                case "notes_total":
+                    return notes_total.ToString();
+                case "percent":
+                    return ((notes_hit * 100) / notes_total).ToString("N0") + "%";
+                case "score":
+                    return score.ToString();
+                default:
+                    return "";
+            }
+        }
+
         public void SetDefault()
         {
             combo = 0;
