@@ -53,6 +53,8 @@ namespace BeatSaberStreamInfo
             //Initialize HMTask for writing to files.
             Action job = delegate
             {
+                var lastWritten = new Dictionary<string, string>();
+
                 while (InSong)
                 {
                     // Get specific value and write to file if template exists.
@@ -60,10 +62,19 @@ namespace BeatSaberStreamInfo
                     {
                         if (template[kvp.Key] == "")
                             continue;
+                        
                         string val = template[kvp.Key];
                         foreach (KeyValuePair<string, string> r in kvp.Value)
-                            val.Replace(r.Key, info.GetVal(r.Value));
+                            val = val.Replace(r.Key, info.GetVal(r.Value));
+
+                        if (!lastWritten.ContainsKey(kvp.Key))
+                            lastWritten.Add(kvp.Key, val);
+                        else if (lastWritten[kvp.Key] == val)
+                            continue;
+                        
                         File.WriteAllText(Path.Combine(dir, kvp.Key + ".txt"), val); //
+
+                        Thread.Sleep(350);
                     }
                     // Essentially the same as above but separate due to other variables being necessary
                     if (template["Progress"] != "")
@@ -74,12 +85,10 @@ namespace BeatSaberStreamInfo
 
                         File.WriteAllText(Path.Combine(dir, "Progress.txt"), 
                             template["Progress"].Replace("%current%", time)
-                            .Replace("%total%", totaltime).Replace("%percent%", percent)); //
-
-                        Thread.Sleep(150);
+                            .Replace("%total%", totaltime).Replace("%percent%", percent + "%")); //
                     }
 
-                    Thread.Sleep(1000);
+                    Thread.Sleep(2500);
                 }
             };
             writer = new HMTask(job);
@@ -207,7 +216,6 @@ namespace BeatSaberStreamInfo
         {
             // Change combo and multiplier back to default values.
             info.combo = 0;
-            info.multiplier = 1;
             info.notes_total++;
         }
         private void OnNoteCut(NoteData data, NoteCutInfo nci, int c)
