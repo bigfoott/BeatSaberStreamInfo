@@ -14,25 +14,18 @@ namespace BeatSaberStreamInfo
         public string Name => "Beat Saber Stream Info";
         public string Version => "1.0";
 
-        // Used to get info about song time and total duration.
         private AudioTimeSyncController ats;
 
-        // The directory where all plugin-related files are read from.
         private readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
 
-        // List of string templates.
         private Dictionary<string, string> template;
 
-        // Template 
         private Dictionary<string, Dictionary<string, string>> templateReplace;
 
-        // Bool to tell if in song or not;
         private bool InSong;
 
-        // Object to store all values about the song.
         private SongInfo info;
 
-        //New thread to write to files from.
         HMTask writer;
         
         public void OnApplicationStart()
@@ -40,7 +33,6 @@ namespace BeatSaberStreamInfo
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
-            //Initialize SongInfo;
             info = new SongInfo();
             templateReplace = new Dictionary<string, Dictionary<string, string>>
                 {
@@ -50,7 +42,6 @@ namespace BeatSaberStreamInfo
                     { "Score", new Dictionary<string, string> { { "%score%", "score" } } }
                 };
 
-            //Initialize HMTask for writing to files.
             Action job = delegate
             {
                 var lastWritten = new Dictionary<string, string>();
@@ -93,19 +84,16 @@ namespace BeatSaberStreamInfo
             };
             writer = new HMTask(job);
 
-            // Check if main directories exist.
             if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "UserData")))
                 Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "UserData"));
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            // Check if main files exist.
             List<string> sections = new List<string> { "Combo", "Multiplier", "Notes", "Progress", "Score", "SongName" };
             foreach (string s in sections)
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                     File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
 
-            // Create template file if it doesnt exist.
             if (!File.Exists(Path.Combine(dir, "Templates.txt")))
                 File.WriteAllText(Path.Combine(dir, "Templates.txt"),
                     "Combo=%combo%" + Environment.NewLine +
@@ -132,12 +120,10 @@ namespace BeatSaberStreamInfo
                     }
                 }
             }
-            // If value doesnt exist in file, add KVP with empty string as value.
             foreach (string s in sections)
                 if (!template.ContainsKey(s))
                     template.Add(s, "");
 
-            // Set to empty values on game start.
             WriteDefaults();
         }
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
@@ -203,7 +189,6 @@ namespace BeatSaberStreamInfo
             }
         }
          
-        // Events
         private void OnComboChange(int c)
         {
             info.combo = c;
@@ -214,20 +199,17 @@ namespace BeatSaberStreamInfo
         }
         private void OnNoteMiss(NoteData data, int c)
         {
-            // Change combo and multiplier back to default values.
             info.combo = 0;
             info.notes_total++;
         }
         private void OnNoteCut(NoteData data, NoteCutInfo nci, int c)
         {
-            // Good cut
             if (nci.allIsOK)
             {
                 info.notes_hit++;
                 info.notes_total++;
             }
-            // Bad cut (miss)
-            else
+            else // Bad cut (miss)
                 OnNoteMiss(data, c);
         }
         private void OnScoreChange(int c)
