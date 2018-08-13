@@ -6,7 +6,6 @@
 # this:
 App.config
 packages.config
-AssemblyInfo.cs
 
 # User-specific files
 *.suo

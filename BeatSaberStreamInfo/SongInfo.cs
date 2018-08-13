@@ -13,6 +13,7 @@ namespace BeatSaberStreamInfo
         public int notes_hit { get; set; }
         public int notes_total { get; set; }
         public int score { get; set; }
+        public int energy { get; set; }
 
         public SongInfo()
         {
@@ -38,6 +39,8 @@ namespace BeatSaberStreamInfo
                         return "0%";
                 case "score":
                     return score.ToString();
+                case "energy":
+                    return energy.ToString("N0") + "%";
                 default:
                     return "";
             }
@@ -50,6 +53,7 @@ namespace BeatSaberStreamInfo
             notes_hit = 0;
             notes_total = 0;
             score = 0;
+            energy = 100;
         }
     }
 }

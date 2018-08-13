@@ -15,17 +15,12 @@ namespace BeatSaberStreamInfo
         public string Version => "1.0";
 
         private AudioTimeSyncController ats;
-
+        private GameEnergyCounter energy;
         private readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
-
         private Dictionary<string, string> template;
-
         private Dictionary<string, Dictionary<string, string>> templateReplace;
-
         private bool InSong;
-
         private SongInfo info;
-
         HMTask writer;
         
         public void OnApplicationStart()
@@ -135,6 +130,7 @@ namespace BeatSaberStreamInfo
 
                 // Get objects from scene to pull song data from.
                 ats = Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
+                energy = Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
                 var score = UnityEngine.Object.FindObjectOfType<ScoreController>();
                 var setupData = Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
 
@@ -162,20 +158,23 @@ namespace BeatSaberStreamInfo
                             .Replace("%current%", "0:00")
                             .Replace("%total%", totaltime)
                             .Replace("%percent%", "0%");
-
+                        
                         File.WriteAllText(Path.Combine(dir, "Progress.txt"), output);
                     }
                 }
                 if (score != null)
                 {
-                    // Hook events.
                     score.comboDidChangeEvent += OnComboChange;
                     score.multiplierDidChangeEvent += OnMultiplierChange;
                     score.noteWasMissedEvent += OnNoteMiss;
                     score.noteWasCutEvent += OnNoteCut;
                     score.scoreDidChangeEvent += OnScoreChange;
                 }
-
+                if (energy != null)
+                {
+                    energy.gameEnergyDidChangeEvent += OnEnergyChange;
+                }
+                
                 // Set variables to default values for start of song.
                 info.SetDefault();
 
@@ -215,6 +214,11 @@ namespace BeatSaberStreamInfo
         private void OnScoreChange(int c)
         {
             info.score = c;
+        }
+
+        private void OnEnergyChange(float f)
+        {
+            info.energy = (int)(f * 100);
         }
 
         private void WriteDefaults()
