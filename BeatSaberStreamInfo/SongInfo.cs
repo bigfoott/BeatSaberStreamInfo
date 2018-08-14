@@ -40,7 +40,7 @@ namespace BeatSaberStreamInfo
                 case "score":
                     return score.ToString();
                 case "energy":
-                    return energy.ToString("N0") + "%";
+                    return energy.ToString("N0");
                 default:
                     return "";
             }
