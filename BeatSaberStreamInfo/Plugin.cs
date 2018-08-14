@@ -46,68 +46,51 @@ namespace BeatSaberStreamInfo
                 while (InSong)
                 {
                     // Get specific value and write to file if template exists.
-                    Console.WriteLine(1);
                     foreach (KeyValuePair<string, Dictionary<string, string>> kvp in templateReplace)
                     {
                         if (template[kvp.Key] == "")
                             continue;
-                        Console.WriteLine(11);
                         string val = template[kvp.Key];
                         foreach (KeyValuePair<string, string> r in kvp.Value)
                             val = val.Replace(r.Key, info.GetVal(r.Value));
-                        Console.WriteLine(12);
                         if (!lastWritten.ContainsKey(kvp.Key))
                             lastWritten.Add(kvp.Key, val);
                         else if (lastWritten[kvp.Key] == val)
                             continue;
-                        Console.WriteLine(13);
                         File.WriteAllText(Path.Combine(dir, kvp.Key + ".txt"), val); //
 
                         Thread.Sleep(400);
                     }
-                    Console.WriteLine(2);
                     // Essentially the same as above but separate due to other variables being necessary
                     if (template["Progress"] != "")
                     {
-                        Console.WriteLine(21);
                         string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
-                        Console.WriteLine(22);
                         string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                        Console.WriteLine(23);
                         string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
-                        Console.WriteLine(24);
 
                         File.WriteAllText(Path.Combine(dir, "Progress.txt"),
                             template["Progress"].Replace("%current%", time)
                             .Replace("%total%", totaltime).Replace("%percent%", percent + "%")); //
                         Thread.Sleep(400);
                     }
-                    Console.WriteLine(3);
                     if (!EnergyReached0 && template["Energy"] != "")
                     {
                         string percent = info.GetVal("energy");
-                        Console.WriteLine(31);
                         string output = template["Energy"].Replace("%percent%", percent + "%");
-                        Console.WriteLine(32);
 
                         if (output.Contains("%bar%"))
                         {
-                            Console.WriteLine(33);
                             string bar = "";
                             int count = Convert.ToInt32(percent) / 5;
-                            Console.WriteLine(34);
                             for (int i = 0; i < count; i++)
                                 bar += "█";
-                            Console.WriteLine(35);
                             for (int i = 0; i < 20 - count; i++)
                                 bar += "░";
-                            Console.WriteLine(36);
                             output = output.Replace("%bar%", bar);
                         }
 
                         File.WriteAllText(Path.Combine(dir, "Energy.txt"), output);
                     }
-                    Console.WriteLine(4);
                     Thread.Sleep(2000);
                 }
             };
