@@ -53,7 +53,7 @@ namespace BeatSaberStreamInfo
             notes_hit = 0;
             notes_total = 0;
             score = 0;
-            energy = 100;
+            energy = 50;
         }
     }
 }

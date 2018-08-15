@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using IllusionPlugin;
+using IllusionInjector;
 using System.IO;
 using System.Threading;
 
@@ -21,6 +22,7 @@ namespace BeatSaberStreamInfo
         private Dictionary<string, Dictionary<string, string>> templateReplace;
         private bool InSong;
         private bool EnergyReached0;
+        private bool BailOutInstalled;
         private SongInfo info;
         Action job;
         HMTask writer;
@@ -30,6 +32,12 @@ namespace BeatSaberStreamInfo
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded += SceneManager_sceneLoaded;
 
+            BailOutInstalled = PluginManager.Plugins.Any(p => p.Name.Contains("Bail") && p.Name.Contains("Out") && p.Name.Contains("Mode"));
+            if (BailOutInstalled)
+                Console.WriteLine("[StreamInfo] BailOut plugin found.");
+            else
+                Console.WriteLine("[StreamInfo] BailOut plugin not found.");
+           
             info = new SongInfo();
             templateReplace = new Dictionary<string, Dictionary<string, string>>
                 {
@@ -43,6 +51,7 @@ namespace BeatSaberStreamInfo
             {
                 var lastWritten = new Dictionary<string, string>();
                 
+
                 while (InSong)
                 {
                     // Get specific value and write to file if template exists.
@@ -73,23 +82,31 @@ namespace BeatSaberStreamInfo
                             .Replace("%total%", totaltime).Replace("%percent%", percent + "%")); //
                         Thread.Sleep(400);
                     }
-                    if (!EnergyReached0 && template["Energy"] != "")
+                    if (template["Energy"] != "")
                     {
-                        string percent = info.GetVal("energy");
-                        string output = template["Energy"].Replace("%percent%", percent + "%");
-
-                        if (output.Contains("%bar%"))
+                        if (BailOutInstalled && !EnergyReached0 && BailedOut())
                         {
-                            string bar = "";
-                            int count = Convert.ToInt32(percent) / 5;
-                            for (int i = 0; i < count; i++)
-                                bar += "█";
-                            for (int i = 0; i < 20 - count; i++)
-                                bar += "░";
-                            output = output.Replace("%bar%", bar);
+                            File.WriteAllText(Path.Combine(dir, "Energy.txt"), "");
+                            EnergyReached0 = true;
                         }
+                        if (!EnergyReached0)
+                        {
+                            string percent = info.GetVal("energy");
+                            string output = template["Energy"].Replace("%percent%", percent + "%");
 
-                        File.WriteAllText(Path.Combine(dir, "Energy.txt"), output);
+                            if (output.Contains("%bar%"))
+                            {
+                                string bar = "";
+                                int count = Convert.ToInt32(percent) / 5;
+                                for (int i = 0; i < count; i++)
+                                    bar += "█";
+                                for (int i = 0; i < 20 - count; i++)
+                                    bar += "░";
+                                output = output.Replace("%bar%", bar);
+                            }
+
+                            File.WriteAllText(Path.Combine(dir, "Energy.txt"), output);
+                        }
                     }
                     Thread.Sleep(2000);
                 }
@@ -105,7 +122,7 @@ namespace BeatSaberStreamInfo
             foreach (string s in sections)
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                     File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
-
+            
             if (!File.Exists(Path.Combine(dir, "Templates.txt")))
                 File.WriteAllText(Path.Combine(dir, "Templates.txt"),
                     "Combo=%combo%" + Environment.NewLine +
@@ -114,7 +131,7 @@ namespace BeatSaberStreamInfo
                     "Progress=%current%/%total% (%percent%)" + Environment.NewLine +
                     "Score=%score%" + Environment.NewLine +
                     "SongName=\"%name%\" by %sub% - %author%" + Environment.NewLine +
-                    "Energy=%bar% (%percent%)"); //█░
+                    "Energy=%bar% (%percent%)");
 
             // Fill template variable with values from text file.
             template = new Dictionary<string, string>();
@@ -145,6 +162,7 @@ namespace BeatSaberStreamInfo
             {
                 InSong = true;
                 EnergyReached0 = false;
+                ResetBailedOut();
                 writer = new HMTask(job);
                 writer.Run();
 
@@ -254,8 +272,7 @@ namespace BeatSaberStreamInfo
         private void OnEnergyFail()
         {
             EnergyReached0 = true;
-            Console.WriteLine("BEPIS");
-            File.WriteAllText(Path.Combine(dir, "Energy.txt"), ""); 
+            File.WriteAllText(Path.Combine(dir, "Energy.txt"), "");
         }
 
         private void WriteDefaults()
@@ -270,6 +287,15 @@ namespace BeatSaberStreamInfo
                 File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "0").Replace("%total%", "0").Replace("%percent%", "0%"));
         }
         
+        private void ResetBailedOut()
+        {
+            BailOutModePlugin.BailedOut = false;
+        }
+        private bool BailedOut()
+        {
+            return BailOutModePlugin.BailedOut;
+        }
+
         public void OnApplicationQuit()
         {
             SceneManager.activeSceneChanged -= SceneManagerOnActiveSceneChanged;

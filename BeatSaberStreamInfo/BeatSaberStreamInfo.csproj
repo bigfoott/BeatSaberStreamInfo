@@ -34,6 +34,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Desktop\assemb\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="BailOutMode, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\BailOutMode.dll</HintPath>
+    </Reference>
+    <Reference Include="IllusionInjector">
+      <HintPath>..\..\..\Desktop\assemb\IllusionInjector.dll</HintPath>
+    </Reference>
     <Reference Include="IllusionPlugin, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Desktop\assemb\IllusionPlugin.dll</HintPath>
