@@ -45,19 +45,18 @@ namespace BeatSaberStreamInfo
                 List<string> sec = new List<string> { "Combo", "Multiplier", "Score", "Energy" };
                 while (InSong)
                 {
-                    string output = "{";
-
-                    string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
-                    string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                    string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
-                    output += "\"Progress\": \"" + time + "/" + totaltime + " (" + percent + "%)\",";
-
-                    foreach (string s in sec)
-                        output += "\"" + s + "\": \"" + info.GetVal(s) + "\",";
-
-                    output += "\"Notes\": \"" + info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)\"}";
-
-                    File.WriteAllText(Path.Combine(dir, "Data.txt"), output);
+                    if (ats != null)
+                    {
+                        string output = "{";
+                        string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
+                        string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
+                        string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
+                        output += "\"Progress\": \"" + time + "/" + totaltime + " (" + percent + "%)\",";
+                        foreach (string s in sec)
+                            output += "\"" + s + "\": \"" + info.GetVal(s) + "\",";
+                        output += "\"Notes\": \"" + info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)\"}";
+                        File.WriteAllText(Path.Combine(dir, "Data.txt"), output);
+                    }
                     Thread.Sleep(1000);
                 }
             };
@@ -105,7 +104,7 @@ namespace BeatSaberStreamInfo
                     string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
                     string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
                     string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
-                    output += "\"Progress\": \"" + time + "/" + totaltime + " (" + percent + "%)\"},";
+                    output += "\"Progress\": \"" + time + "/" + totaltime + " (" + percent + "%)\",";
                 }
                 if (score != null)
                 {
