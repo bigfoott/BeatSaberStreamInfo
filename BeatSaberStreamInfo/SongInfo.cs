@@ -34,7 +34,7 @@ namespace BeatSaberStreamInfo
                     return notes_total.ToString();
                 case "percent":
                     if (notes_total != 0)
-                        return ((notes_hit * 100) / notes_total).ToString("N0") + "%";
+                        return ((notes_hit * 100) / notes_total).ToString("N0");
                     else
                         return "0%";
                 case "score":

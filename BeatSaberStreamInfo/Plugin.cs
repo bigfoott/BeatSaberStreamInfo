@@ -18,15 +18,13 @@ namespace BeatSaberStreamInfo
         private AudioTimeSyncController ats;
         private GameEnergyCounter energy;
         private readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
-        private Dictionary<string, string> template;
-        private Dictionary<string, Dictionary<string, string>> templateReplace;
         private bool InSong;
         private bool EnergyReached0;
         private bool BailOutInstalled;
         private SongInfo info;
         Action job;
         HMTask writer;
-        
+
         public void OnApplicationStart()
         {
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
@@ -39,76 +37,28 @@ namespace BeatSaberStreamInfo
                 Console.WriteLine("[StreamInfo] BailOut plugin not found.");
            
             info = new SongInfo();
-            templateReplace = new Dictionary<string, Dictionary<string, string>>
-                {
-                    { "Combo", new Dictionary<string, string> { { "%combo%", "combo" } } },
-                    { "Multiplier", new Dictionary<string, string> { { "%multiplier%", "multiplier" } } },
-                    { "Notes", new Dictionary<string, string> { { "%hit%", "notes_hit" }, { "%total%", "notes_total" }, { "%percent%", "percent" } } },
-                    { "Score", new Dictionary<string, string> { { "%score%", "score" } } }
-                };
 
             job = delegate
             {
                 var lastWritten = new Dictionary<string, string>();
-                
 
+                List<string> sec = new List<string> { "Combo", "Multiplier", "Score", "Energy" };
                 while (InSong)
                 {
-                    // Get specific value and write to file if template exists.
-                    foreach (KeyValuePair<string, Dictionary<string, string>> kvp in templateReplace)
-                    {
-                        if (template[kvp.Key] == "")
-                            continue;
-                        string val = template[kvp.Key];
-                        foreach (KeyValuePair<string, string> r in kvp.Value)
-                            val = val.Replace(r.Key, info.GetVal(r.Value));
-                        if (!lastWritten.ContainsKey(kvp.Key))
-                            lastWritten.Add(kvp.Key, val);
-                        else if (lastWritten[kvp.Key] == val)
-                            continue;
-                        File.WriteAllText(Path.Combine(dir, kvp.Key + ".txt"), val); //
+                    string output = "{";
 
-                        Thread.Sleep(400);
-                    }
-                    // Essentially the same as above but separate due to other variables being necessary
-                    if (template["Progress"] != "")
-                    {
-                        string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
-                        string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                        string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
+                    string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
+                    string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
+                    string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
+                    output += "\"Progress\": \"" + time + "/" + totaltime + " (" + percent + "%)\",";
 
-                        File.WriteAllText(Path.Combine(dir, "Progress.txt"),
-                            template["Progress"].Replace("%current%", time)
-                            .Replace("%total%", totaltime).Replace("%percent%", percent + "%")); //
-                        Thread.Sleep(400);
-                    }
-                    if (template["Energy"] != "")
-                    {
-                        if (BailOutInstalled && !EnergyReached0 && BailedOut())
-                        {
-                            File.WriteAllText(Path.Combine(dir, "Energy.txt"), "");
-                            EnergyReached0 = true;
-                        }
-                        if (!EnergyReached0)
-                        {
-                            string percent = info.GetVal("energy");
-                            string output = template["Energy"].Replace("%percent%", percent + "%");
+                    foreach (string s in sec)
+                        output += "\"" + s + "\": \"" + info.GetVal(s) + "\",";
 
-                            if (output.Contains("%bar%"))
-                            {
-                                string bar = "";
-                                int count = Convert.ToInt32(percent) / 5;
-                                for (int i = 0; i < count; i++)
-                                    bar += "█";
-                                for (int i = 0; i < 20 - count; i++)
-                                    bar += "░";
-                                output = output.Replace("%bar%", bar);
-                            }
+                    output += "\"Notes\": \"" + info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)\"}";
 
-                            File.WriteAllText(Path.Combine(dir, "Energy.txt"), output);
-                        }
-                    }
-                    Thread.Sleep(2000);
+                    File.WriteAllText(Path.Combine(dir, "Data.txt"), output);
+                    Thread.Sleep(1000);
                 }
             };
             writer = new HMTask(job);
@@ -118,43 +68,12 @@ namespace BeatSaberStreamInfo
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            List<string> sections = new List<string> { "Combo", "Multiplier", "Notes", "Progress", "Score", "SongName", "Energy" };
+            List<string> sections = new List<string> { "SongName", "Data" };
             foreach (string s in sections)
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                     File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
             
-            if (!File.Exists(Path.Combine(dir, "Templates.txt")))
-                File.WriteAllText(Path.Combine(dir, "Templates.txt"),
-                    "Combo=%combo%" + Environment.NewLine +
-                    "Multiplier=%multiplier%x" + Environment.NewLine +
-                    "Notes=%hit%/%total% (%percent%)" + Environment.NewLine +
-                    "Progress=%current%/%total% (%percent%)" + Environment.NewLine +
-                    "Score=%score%" + Environment.NewLine +
-                    "SongName=\"%name%\" by %sub% - %author%" + Environment.NewLine +
-                    "Energy=%bar% (%percent%)");
-
             // Fill template variable with values from text file.
-            template = new Dictionary<string, string>();
-            foreach (string l in File.ReadAllLines(Path.Combine(dir, "Templates.txt")))
-            {
-                if (l.StartsWith("//"))
-                    continue;
-                foreach (string sec in sections)
-                {
-                    if (l.StartsWith(sec + "="))
-                    {
-                        template.Add(sec, l.Substring(sec.Length + 1).Replace("%nl%", Environment.NewLine));
-
-                        sections.Remove(sec);
-                        break;
-                    }
-                }
-            }
-            foreach (string s in sections)
-                if (!template.ContainsKey(s))
-                    template.Add(s, "");
-
-            WriteDefaults();
         }
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
         {
@@ -171,34 +90,22 @@ namespace BeatSaberStreamInfo
                 energy = Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
                 var score = UnityEngine.Object.FindObjectOfType<ScoreController>();
                 var setupData = Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
-
+                
+                string output = "{";
+                
                 if (setupData != null)
                 {
                     var level = setupData.difficultyLevel.level;
                     
-                    // Replace template placeholders with song data.
-                    string songname = template["SongName"];
-                    if (songname != "")
-                        songname = songname
-                            .Replace("%name%", level.songName)
-                            .Replace("%sub%", level.songSubName)
-                            .Replace("%author%", level.songAuthorName);
-
+                    string songname = "\"" + level.songName + "\" by " + level.songSubName + " - " + level.songAuthorName;
                     File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "               ");
                 }
                 if (ats != null)
                 {
-                    if (template["Progress"] != "")
-                    {
-                        // Replace template placeholders with default values and total song time.
-                        string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                        string output = template["Progress"]
-                            .Replace("%current%", "0:00")
-                            .Replace("%total%", totaltime)
-                            .Replace("%percent%", "0%");
-                        
-                        File.WriteAllText(Path.Combine(dir, "Progress.txt"), output);
-                    }
+                    string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
+                    string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
+                    string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
+                    output += "\"Progress\": \"" + time + "/" + totaltime + " (" + percent + "%)\"},";
                 }
                 if (score != null)
                 {
@@ -212,19 +119,16 @@ namespace BeatSaberStreamInfo
                 {
                     energy.gameEnergyDidChangeEvent += OnEnergyChange;
                     energy.gameEnergyDidReach0Event += OnEnergyFail;
-
-                    if (template["Energy"] != "")
-                    {
-                        string output = template["Energy"].Replace("%bar%", "██████████░░░░░░░░░░").Replace("%percent%", "50%");
-                        File.WriteAllText(Path.Combine(dir, "Energy.txt"), output);
-                    }
                 }
                 
-                // Set variables to default values for start of song.
                 info.SetDefault();
-
-                // Write default values to text file.
-                WriteDefaults();
+                
+                List<string> sec = new List<string> { "Combo", "Multiplier", "Score", "Energy" };
+                foreach (string s in sec)
+                    output += "\"" + s + "\": \"" + info.GetVal(s) + "\",";
+                output += "\"Notes\": \"" + info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)\"}";
+                
+                File.WriteAllText(Path.Combine(dir, "Data.txt"), output);
             }
             else
             {
@@ -256,7 +160,7 @@ namespace BeatSaberStreamInfo
                 info.notes_hit++;
                 info.notes_total++;
             }
-            else // Bad cut (miss)
+            else
                 OnNoteMiss(data, c);
         }
         private void OnScoreChange(int c)
@@ -274,19 +178,7 @@ namespace BeatSaberStreamInfo
             EnergyReached0 = true;
             File.WriteAllText(Path.Combine(dir, "Energy.txt"), "");
         }
-
-        private void WriteDefaults()
-        {   
-            if (template["Combo"] != "")
-                File.WriteAllText(Path.Combine(dir, "Combo.txt"), template["Combo"].Replace("%combo%", "0"));
-            if (template["Multiplier"] != "")
-                File.WriteAllText(Path.Combine(dir, "Multiplier.txt"), template["Multiplier"].Replace("%multiplier%", "1"));
-            if (template["Score"] != "")
-                File.WriteAllText(Path.Combine(dir, "Score.txt"), template["Score"].Replace("%score%", "0"));
-            if (template["Notes"] != "")
-                File.WriteAllText(Path.Combine(dir, "Notes.txt"), template["Notes"].Replace("%hit%", "0").Replace("%total%", "0").Replace("%percent%", "0%"));
-        }
-        
+                
         private void ResetBailedOut()
         {
             BailOutModePlugin.BailedOut = false;
