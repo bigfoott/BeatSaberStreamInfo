@@ -42,15 +42,15 @@ namespace BeatSaberStreamInfo
         {
             var c = new Dictionary<string, string>();
 
-            if (!File.Exists(Path.Combine(Plugin.dir, "OverlayConfig.txt")))
-                File.WriteAllText(Path.Combine(Plugin.dir, "OverlayConfig.txt"), "TextColor=White" + Environment.NewLine + "BackgroundColor=Black");
-
-            List<string> ValidSettings = new List<string> { "BackgroundColor", "TextColor" };
+            List<string> ValidSettings = new List<string> { "BackgroundColor", "TextColor", "UseBackgroundImage" };
             string[] lines = File.ReadAllLines(Path.Combine(Plugin.dir, "OverlayConfig.txt"));
             foreach (string setting in ValidSettings)
-                foreach (string l in lines)
-                    if (l.StartsWith(setting))
-                        c.Add(setting, l.Substring(setting.Length + 1));
+            {
+                if (lines.Any(l => l.StartsWith(setting + "=") && l.Length > setting.Length + 1))
+                    c.Add(setting, lines.First(l => l.StartsWith(setting + "=")).Substring(setting.Length + 1));
+                else
+                    c.Add(setting, "");
+            }
 
             return c;
         }
@@ -62,7 +62,7 @@ namespace BeatSaberStreamInfo
             ForeColor = Color.FromName(config["TextColor"]);
             BackColor = Color.FromName(config["BackgroundColor"]);
 
-            if (File.Exists(Path.Combine(Plugin.dir, "image.png")))
+            if (config["UseBackgroundImage"].ToLower() == "true" && File.Exists(Path.Combine(Plugin.dir, "image.png")))
                 BackgroundImage = Image.FromFile(Path.Combine(Plugin.dir, "image.png"));
             
             label_multiplier.Font = new Font(MainFont, 50);

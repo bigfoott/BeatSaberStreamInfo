@@ -39,19 +39,11 @@ namespace BeatSaberStreamInfo
                 Console.WriteLine("[StreamInfo] BailOut plugin not found.");
             
             info = new SongInfo();
-            overlay = new Overlay();
-
-            Action overlayjob = delegate
-            {
-                System.Windows.Forms.Application.Run(overlay);
-            };
-            var OverlayTask = new HMTask(overlayjob);
-            OverlayTask.Run();
-
+            
             job = delegate
             {
                 var lastWritten = new Dictionary<string, string>();
-                
+                Console.WriteLine("[StreamInfo] HMTask started.");
                 while (InSong)
                 {
                     if (ats != null)
@@ -77,10 +69,24 @@ namespace BeatSaberStreamInfo
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            List<string> sections = new List<string> { "SongName" };
+            List<string> sections = new List<string> { "SongName", "Config" };
             foreach (string s in sections)
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
+                {
+                    Console.WriteLine("[StreamInfo] " + s + ".txt not found. Creating file...");
                     File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
+                }
+
+            if (!File.Exists(Path.Combine(dir, "OverlayConfig.txt")))
+            {
+                Console.WriteLine("[StreamInfo] OverlayConfig.txt not found. Creating file...");
+                File.WriteAllText(Path.Combine(dir, "OverlayConfig.txt"), "TextColor=White" + Environment.NewLine + "BackgroundColor=Black" + Environment.NewLine + "UseBackgroundImage=False");
+            }
+            
+            overlay = new Overlay();
+            Action overlayjob = delegate { System.Windows.Forms.Application.Run(overlay); };
+            var OverlayTask = new HMTask(overlayjob);
+            OverlayTask.Run();
         }
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
         {
