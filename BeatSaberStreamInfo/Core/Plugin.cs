@@ -81,8 +81,6 @@ namespace BeatSaberStreamInfo
             foreach (string s in sections)
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                     File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
-            
-            // Fill template variable with values from text file.
         }
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
         {

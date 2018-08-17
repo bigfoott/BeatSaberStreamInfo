@@ -17,10 +17,9 @@ namespace BeatSaberStreamInfo
         [System.Runtime.InteropServices.DllImport("gdi32.dll")]
         private static extern IntPtr AddFontMemResourceEx(IntPtr pbFont, uint cbFont,
             IntPtr pdv, [System.Runtime.InteropServices.In] ref uint pcFonts);
-
+        
         private PrivateFontCollection fonts = new PrivateFontCollection();
-        FontFamily Font;
-        DateTime lastWrite;
+        FontFamily MainFont;
 
         private Dictionary<string, string> config;
 
@@ -36,22 +35,42 @@ namespace BeatSaberStreamInfo
             AddFontMemResourceEx(fontPtr, (uint)Resources.teko.Length, IntPtr.Zero, ref dummy);
             System.Runtime.InteropServices.Marshal.FreeCoTaskMem(fontPtr);
 
-            Font = fonts.Families[0];
+            MainFont = fonts.Families[0];
+        }
+
+        private Dictionary<string, string> LoadConfig()
+        {
+            var c = new Dictionary<string, string>();
+
+            if (!File.Exists(Path.Combine(Plugin.dir, "OverlayConfig.txt")))
+                File.WriteAllText(Path.Combine(Plugin.dir, "OverlayConfig.txt"), "TextColor=White" + Environment.NewLine + "BackgroundColor=Black");
+
+            List<string> ValidSettings = new List<string> { "BackgroundColor", "TextColor" };
+            string[] lines = File.ReadAllLines(Path.Combine(Plugin.dir, "OverlayConfig.txt"));
+            foreach (string setting in ValidSettings)
+                foreach (string l in lines)
+                    if (l.StartsWith(setting))
+                        c.Add(setting, l.Substring(setting.Length + 1));
+
+            return c;
         }
 
         private void Overlay_Load(object sender, EventArgs e)
         {
-            lastWrite = DateTime.Now;
+            config = LoadConfig();
 
-            label_multiplier.Font = new Font(Font, 50);
-            label_score.Font = new Font(Font, 30);
-            label_progress.Font = new Font(Font, 20);
+            ForeColor = Color.FromName(config["TextColor"]);
+            BackColor = Color.FromName(config["BackgroundColor"]);
 
-            label_combo.Font = new Font(Font, 50);
-            label_combotext.Font = new Font(Font, 25);
-            label_notes.Font = new Font(Font, 20);
+            label_multiplier.Font = new Font(MainFont, 50);
+            label_score.Font = new Font(MainFont, 30);
+            label_progress.Font = new Font(MainFont, 20);
 
-            label_energy.Font = new Font(Font, 18);
+            label_combo.Font = new Font(MainFont, 50);
+            label_combotext.Font = new Font(MainFont, 25);
+            label_notes.Font = new Font(MainFont, 20);
+
+            label_energy.Font = new Font(MainFont, 18);
         }
 
         public void UpdateText(string multiplier, string score, string progress, string combo, string notes, string energy)
