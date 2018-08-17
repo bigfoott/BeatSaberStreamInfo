@@ -1,1 +1,1 @@
-Plugin to output certain info about the game to separate files. To be used with [BeatSaberStreamOverlay](https://github.com/bigfoott/BeatSaberStreamOverlay).
+Output game info to be used on stream.
