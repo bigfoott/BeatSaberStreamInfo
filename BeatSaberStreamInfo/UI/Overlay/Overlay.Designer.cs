@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Overlay));
             this.label_energy = new System.Windows.Forms.Label();
             this.label_notes = new System.Windows.Forms.Label();
             this.label_progress = new System.Windows.Forms.Label();
@@ -131,6 +132,7 @@
             this.Controls.Add(this.label_score);
             this.Controls.Add(this.label_multiplier);
             this.ForeColor = System.Drawing.Color.White;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximumSize = new System.Drawing.Size(567, 288);
             this.MinimumSize = new System.Drawing.Size(567, 288);
             this.Name = "Overlay";
