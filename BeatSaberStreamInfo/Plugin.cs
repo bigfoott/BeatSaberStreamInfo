@@ -17,13 +17,15 @@ namespace BeatSaberStreamInfo
 
         private AudioTimeSyncController ats;
         private GameEnergyCounter energy;
-        private readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
+        public static readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
         private bool InSong;
         private bool EnergyReached0;
         private bool BailOutInstalled;
         private SongInfo info;
         Action job;
         HMTask writer;
+
+        Overlay overlay;
 
         public void OnApplicationStart()
         {
@@ -35,29 +37,37 @@ namespace BeatSaberStreamInfo
                 Console.WriteLine("[StreamInfo] BailOut plugin found.");
             else
                 Console.WriteLine("[StreamInfo] BailOut plugin not found.");
-           
+            
             info = new SongInfo();
+            overlay = new Overlay();
+
+            Action overlayjob = delegate
+            {
+                System.Windows.Forms.Application.Run(overlay);
+            };
+            var OverlayTask = new HMTask(overlayjob);
+            OverlayTask.Run();
 
             job = delegate
             {
                 var lastWritten = new Dictionary<string, string>();
-
-                List<string> sec = new List<string> { "Combo", "Multiplier", "Score", "Energy" };
+                
                 while (InSong)
                 {
                     if (ats != null)
                     {
-                        string output = "{";
                         string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
                         string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
                         string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
-                        output += "\"Progress\": \"" + time + "/" + totaltime + " (" + percent + "%)\",";
-                        foreach (string s in sec)
-                            output += "\"" + s + "\": \"" + info.GetVal(s) + "\",";
-                        output += "\"Notes\": \"" + info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)\"}";
-                        File.WriteAllText(Path.Combine(dir, "Data.txt"), output);
+
+                        overlay.UpdateText(info.GetVal("multiplier"),
+                            info.GetVal("score"),
+                            time + " / " + totaltime + " (" + percent + "%)",
+                            info.GetVal("combo"),
+                            info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)",
+                            info.GetVal("energy"));
                     }
-                    Thread.Sleep(1000);
+                    Thread.Sleep(100);
                 }
             };
             writer = new HMTask(job);
@@ -67,7 +77,7 @@ namespace BeatSaberStreamInfo
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            List<string> sections = new List<string> { "SongName", "Data" };
+            List<string> sections = new List<string> { "SongName" };
             foreach (string s in sections)
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                     File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
@@ -85,12 +95,12 @@ namespace BeatSaberStreamInfo
                 writer.Run();
 
                 // Get objects from scene to pull song data from.
-                ats = Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
-                energy = Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
+                ats = UnityEngine.Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
+                energy = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
                 var score = UnityEngine.Object.FindObjectOfType<ScoreController>();
-                var setupData = Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
+                var setupData = UnityEngine.Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
                 
-                string output = "{";
+                string progress = "";
                 
                 if (setupData != null)
                 {
@@ -101,10 +111,7 @@ namespace BeatSaberStreamInfo
                 }
                 if (ats != null)
                 {
-                    string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
-                    string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                    string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
-                    output += "\"Progress\": \"" + time + "/" + totaltime + " (" + percent + "%)\",";
+                    progress = "0:00/" + Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00") + " (0%)";
                 }
                 if (score != null)
                 {
@@ -121,13 +128,13 @@ namespace BeatSaberStreamInfo
                 }
                 
                 info.SetDefault();
-                
-                List<string> sec = new List<string> { "Combo", "Multiplier", "Score", "Energy" };
-                foreach (string s in sec)
-                    output += "\"" + s + "\": \"" + info.GetVal(s) + "\",";
-                output += "\"Notes\": \"" + info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)\"}";
-                
-                File.WriteAllText(Path.Combine(dir, "Data.txt"), output);
+
+                overlay.UpdateText(info.GetVal("multiplier"),
+                            info.GetVal("score"),
+                            progress,
+                            info.GetVal("combo"),
+                            info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)",
+                            info.GetVal("energy"));
             }
             else
             {
