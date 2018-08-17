@@ -62,6 +62,9 @@ namespace BeatSaberStreamInfo
             ForeColor = Color.FromName(config["TextColor"]);
             BackColor = Color.FromName(config["BackgroundColor"]);
 
+            if (File.Exists(Path.Combine(Plugin.dir, "image.png")))
+                BackgroundImage = Image.FromFile(Path.Combine(Plugin.dir, "image.png"));
+            
             label_multiplier.Font = new Font(MainFont, 50);
             label_score.Font = new Font(MainFont, 30);
             label_progress.Font = new Font(MainFont, 20);
