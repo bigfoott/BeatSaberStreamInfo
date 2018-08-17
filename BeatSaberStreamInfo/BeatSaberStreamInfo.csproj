@@ -65,27 +65,28 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Overlay.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Overlay.Designer.cs">
-      <DependentUpon>Overlay.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Plugin.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="SongInfo.cs" />
+    <Compile Include="UI\Overlay.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Overlay.Designer.cs">
+      <DependentUpon>Overlay.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Core\Plugin.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Core\SongInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Overlay.resx">
+    <EmbeddedResource Include="UI\Overlay.resx">
       <DependentUpon>Overlay.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
