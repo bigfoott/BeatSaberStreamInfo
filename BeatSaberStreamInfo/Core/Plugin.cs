@@ -69,24 +69,29 @@ namespace BeatSaberStreamInfo
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
-            List<string> sections = new List<string> { "SongName", "Config" };
+            List<string> sections = new List<string> { "SongName", "Config", "OverlayConfig" };
             foreach (string s in sections)
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                 {
                     Console.WriteLine("[StreamInfo] " + s + ".txt not found. Creating file...");
-                    File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
+                    if (s == "Config")
+                        File.WriteAllText(Path.Combine(dir, "Config.txt"), "OverlayEnabled=True" + Environment.NewLine + "BotEnabled=True");
+                    else if (s == "OverlayConfig")
+                        File.WriteAllText(Path.Combine(dir, "OverlayConfig.txt"), "TextColor=White" + Environment.NewLine + "BackgroundColor=Black" + Environment.NewLine + "UseBackgroundImage=False");
+                    else
+                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
                 }
-
-            if (!File.Exists(Path.Combine(dir, "OverlayConfig.txt")))
-            {
-                Console.WriteLine("[StreamInfo] OverlayConfig.txt not found. Creating file...");
-                File.WriteAllText(Path.Combine(dir, "OverlayConfig.txt"), "TextColor=White" + Environment.NewLine + "BackgroundColor=Black" + Environment.NewLine + "UseBackgroundImage=False");
-            }
             
-            overlay = new Overlay();
-            Action overlayjob = delegate { System.Windows.Forms.Application.Run(overlay); };
-            var OverlayTask = new HMTask(overlayjob);
-            OverlayTask.Run();
+            foreach (string l in File.ReadAllLines(Path.Combine(dir, "Config.txt")))
+                if (l.ToLower().StartsWith("overlayenabled=true"))
+                {
+                    overlay = new Overlay();
+                    Action overlayjob = delegate { System.Windows.Forms.Application.Run(overlay); };
+                    var OverlayTask = new HMTask(overlayjob);
+                    OverlayTask.Run();
+
+                    break;
+                }
         }
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
         {
