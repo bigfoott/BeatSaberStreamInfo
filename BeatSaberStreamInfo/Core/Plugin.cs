@@ -7,6 +7,7 @@ using IllusionPlugin;
 using IllusionInjector;
 using System.IO;
 using System.Threading;
+using BeatSaberStreamInfo.UI.Bot;
 
 namespace BeatSaberStreamInfo
 {
@@ -26,6 +27,7 @@ namespace BeatSaberStreamInfo
         HMTask writer;
 
         Overlay overlay;
+        Bot bot;
 
         public void OnApplicationStart()
         {
@@ -81,17 +83,24 @@ namespace BeatSaberStreamInfo
                     else
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
                 }
-            
+
             foreach (string l in File.ReadAllLines(Path.Combine(dir, "Config.txt")))
+            {
                 if (l.ToLower().StartsWith("overlayenabled=true"))
                 {
                     overlay = new Overlay();
                     Action overlayjob = delegate { System.Windows.Forms.Application.Run(overlay); };
                     var OverlayTask = new HMTask(overlayjob);
                     OverlayTask.Run();
-
-                    break;
                 }
+                else if (l.ToLower().StartsWith("botenabled=true"))
+                {
+                    bot = new Bot();
+                    Action botjob = delegate { System.Windows.Forms.Application.Run(bot); };
+                    var BotTask = new HMTask(botjob);
+                    BotTask.Run();
+                }
+            }
         }
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
         {

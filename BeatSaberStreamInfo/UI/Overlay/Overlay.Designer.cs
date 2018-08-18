@@ -40,6 +40,7 @@
             // 
             // label_energy
             // 
+            this.label_energy.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label_energy.BackColor = System.Drawing.Color.Transparent;
             this.label_energy.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
             this.label_energy.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -52,6 +53,7 @@
             // 
             // label_notes
             // 
+            this.label_notes.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label_notes.BackColor = System.Drawing.Color.Transparent;
             this.label_notes.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F);
             this.label_notes.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -64,6 +66,7 @@
             // 
             // label_progress
             // 
+            this.label_progress.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label_progress.BackColor = System.Drawing.Color.Transparent;
             this.label_progress.Font = new System.Drawing.Font("Microsoft Sans Serif", 20F);
             this.label_progress.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -76,6 +79,7 @@
             // 
             // label_combotext
             // 
+            this.label_combotext.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label_combotext.BackColor = System.Drawing.Color.Transparent;
             this.label_combotext.Font = new System.Drawing.Font("Microsoft Sans Serif", 25F);
             this.label_combotext.Location = new System.Drawing.Point(297, 24);
@@ -87,6 +91,7 @@
             // 
             // label_combo
             // 
+            this.label_combo.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label_combo.BackColor = System.Drawing.Color.Transparent;
             this.label_combo.Font = new System.Drawing.Font("Microsoft Sans Serif", 50F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label_combo.Location = new System.Drawing.Point(289, 69);
@@ -98,6 +103,7 @@
             // 
             // label_score
             // 
+            this.label_score.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label_score.BackColor = System.Drawing.Color.Transparent;
             this.label_score.Font = new System.Drawing.Font("Microsoft Sans Serif", 30F);
             this.label_score.Location = new System.Drawing.Point(27, 94);
@@ -109,6 +115,7 @@
             // 
             // label_multiplier
             // 
+            this.label_multiplier.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label_multiplier.BackColor = System.Drawing.Color.Transparent;
             this.label_multiplier.Font = new System.Drawing.Font("Microsoft Sans Serif", 50F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label_multiplier.Location = new System.Drawing.Point(41, 41);
@@ -133,7 +140,6 @@
             this.Controls.Add(this.label_multiplier);
             this.ForeColor = System.Drawing.Color.White;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximumSize = new System.Drawing.Size(567, 288);
             this.MinimumSize = new System.Drawing.Size(567, 288);
             this.Name = "Overlay";
             this.Text = "Overlay";

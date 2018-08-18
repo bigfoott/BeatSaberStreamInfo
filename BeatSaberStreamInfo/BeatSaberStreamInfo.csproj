@@ -65,15 +65,69 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChatSharp\CapabilityPool.cs" />
+    <Compile Include="ChatSharp\ChannelCollection.cs" />
+    <Compile Include="ChatSharp\ClientSettings.cs" />
+    <Compile Include="ChatSharp\Events\ChannelEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\ChannelTopicEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\ChannelUserEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\ErronousNickEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\ErrorEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\ErrorReplieEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\IrcNoticeEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\KickEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\ModeChangeEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\NickChangedEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\PrivateMessageEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\RawMessageEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\ServerMOTDEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\SocketErrorEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\SupportsEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\UserEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\WhoEventArgs.cs" />
+    <Compile Include="ChatSharp\Events\WhoIsEventArgs.cs" />
+    <Compile Include="ChatSharp\Handlers\CapabilityHandlers.cs" />
+    <Compile Include="ChatSharp\Handlers\ChannelHandlers.cs" />
+    <Compile Include="ChatSharp\Handlers\ErrorHandlers.cs" />
+    <Compile Include="ChatSharp\Handlers\ListingHandlers.cs" />
+    <Compile Include="ChatSharp\Handlers\MessageHandlers.cs" />
+    <Compile Include="ChatSharp\Handlers\MOTDHandlers.cs" />
+    <Compile Include="ChatSharp\Handlers\SaslHandlers.cs" />
+    <Compile Include="ChatSharp\Handlers\ServerHandlers.cs" />
+    <Compile Include="ChatSharp\Handlers\UserHandlers.cs" />
+    <Compile Include="ChatSharp\IrcCapability.cs" />
+    <Compile Include="ChatSharp\IrcChannel.cs" />
+    <Compile Include="ChatSharp\IrcClient.Commands.cs" />
+    <Compile Include="ChatSharp\IrcClient.cs" />
+    <Compile Include="ChatSharp\IrcMessage.cs" />
+    <Compile Include="ChatSharp\IrcProtocolException.cs" />
+    <Compile Include="ChatSharp\IrcUser.cs" />
+    <Compile Include="ChatSharp\Mask.cs" />
+    <Compile Include="ChatSharp\MaskCollection.cs" />
+    <Compile Include="ChatSharp\PrivateMessage.cs" />
+    <Compile Include="ChatSharp\RequestManager.cs" />
+    <Compile Include="ChatSharp\ServerInfo.cs" />
+    <Compile Include="ChatSharp\Timestamp.cs" />
+    <Compile Include="ChatSharp\UserPool.cs" />
+    <Compile Include="ChatSharp\UserPoolView.cs" />
+    <Compile Include="ChatSharp\WhoIs.cs" />
+    <Compile Include="ChatSharp\WhoX.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="UI\Overlay.cs">
+    <Compile Include="UI\Bot\BeatSaver.cs" />
+    <Compile Include="UI\Bot\Bot.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\Overlay.Designer.cs">
+    <Compile Include="UI\Bot\Bot.Designer.cs">
+      <DependentUpon>Bot.cs</DependentUpon>
+    </Compile>
+    <Compile Include="UI\Overlay\Overlay.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Overlay\Overlay.Designer.cs">
       <DependentUpon>Overlay.cs</DependentUpon>
     </Compile>
     <Compile Include="Core\Plugin.cs" />
@@ -81,7 +135,10 @@
     <Compile Include="Core\SongInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\Overlay.resx">
+    <EmbeddedResource Include="UI\Bot\Bot.resx">
+      <DependentUpon>Bot.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Overlay\Overlay.resx">
       <DependentUpon>Overlay.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">
@@ -93,5 +150,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\teko.ttf" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
