@@ -1,25 +1,19 @@
-﻿using ChatSharp;
-using ChatSharp.Events;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BeatSaberStreamInfo.UI.Bot
 {
     public partial class Bot : Form
     {
-        private static string botName = "x";
-        private static string channelName = "x";
-        private static string oauth = "x";
+        private static string botName;
+        private static string channelName;
+        private static string oauth;
+
+        private readonly string[] cmds = { "!search", "!nowplaying", "!np" };
 
         private StreamWriter _writer;
         private bool _retry;
@@ -37,19 +31,79 @@ namespace BeatSaberStreamInfo.UI.Bot
         private void Bot_Load(object sender, EventArgs e)
         {
             bs = new BeatSaver();
+
+            ReloadConfig();
+
+            foreach (string l in File.ReadAllLines(Path.Combine(Plugin.dir, "data/botsettings.txt")))
+            {
+                if (l.StartsWith("cmd_search="))
+                    check_cmdsearch.Checked = l.Replace("cmd_search=", "").ToLower() == "true";
+                if (l.StartsWith("cmd_nowplaying="))
+                    check_cmdnp.Checked = l.Replace("cmd_nowplaying=", "").ToLower() == "true";
+                if (l.StartsWith("auto_nowplaying="))
+                    check_nowplaying.Checked = l.Replace("auto_nowplaying=", "").ToLower() == "true";
+                if (l.StartsWith("auto_endstats="))
+                    check_endstats.Checked = l.Replace("auto_endstats=", "").ToLower() == "true";
+            }
+        }
+        private void Bot_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            string ret = "cmd_search=" + check_cmdsearch.Checked + Environment.NewLine +
+                "cmd_nowplaying=" + check_cmdnp.Checked + Environment.NewLine +
+                "auto_nowplaying=" + check_nowplaying + Environment.NewLine +
+                "auto_endstats=" + check_endstats;
+            File.WriteAllText(Path.Combine(Plugin.dir, "data/botsettings.txt"), ret);
+
         }
 
         private void button_connect_Click(object sender, EventArgs ev)
         {
-            BotThread = new Thread(Init);
+            Log("Initializing...");
+
+            if (botName == "" || channelName == "" || oauth == "" || !oauth.Contains("oauth:"))
+            {
+                Log("ERROR: Please make sure all info in your BotConfig.txt file is correct.");
+                return;
+            }
+
+            BotThread = new Thread(new ThreadStart(Init));
             BotThread.Start();
         }
-
         private void button_disconnect_Click(object sender, EventArgs e)
         {
+            _exit = true;
+            BotThread.Abort();
 
+            button_connect.Enabled = true;
+            button_disconnect.Enabled = false;
+            button_reload.Enabled = true;
+
+            Log("Disconnected.");
+            label_status.Text = "Status: Disconnected";
+        }
+        private void button_clear_Click(object sender, EventArgs e)
+        {
+            log.Text = "";
+        }
+        private void button_reload_Click(object sender, EventArgs e)
+        {
+            ReloadConfig();
+            Log("Reloaded config"); 
         }
 
+        private void ReloadConfig()
+        {
+            string[] lines = File.ReadAllLines(Path.Combine(Plugin.dir, "BotConfig.txt"));
+            foreach (string l in lines)
+            {
+                if (l.StartsWith("BotName="))
+                    botName = l.Replace("BotName=", "");
+                if (l.StartsWith("ChannelName="))
+                    channelName = l.Replace("ChannelName=", "");
+                if (l.StartsWith("OAuth="))
+                    oauth = l.Replace("OAuth=", "");
+            }
+        }
         private void Log(string s)
         {
             if (log.Text != "")
@@ -57,15 +111,15 @@ namespace BeatSaberStreamInfo.UI.Bot
             else
                 log.AppendText("[" + DateTime.Now.ToString("hh:mm:ss tt") + "] " + s);
         }
-        
         private void Init()
         {
-            //_logger.Debug("Twitch bot starting...");
             var retryCount = 0;
+            _exit = false;
             do
             {
                 try
                 {
+                    Log("Connecting to twitch server.");
                     using (var irc = new TcpClient("irc.chat.twitch.tv", 6667))
                     using (var stream = irc.GetStream())
                     using (var reader = new StreamReader(stream))
@@ -74,21 +128,21 @@ namespace BeatSaberStreamInfo.UI.Bot
                         // Set a global Writer
                         _writer = writer;
 
+                        button_connect.Enabled = false;
+                        button_disconnect.Enabled = true;
+                        button_reload.Enabled = false;
                         // Login Information for the irc client
-                        //_logger.Debug("Connection to twitch server established. Beginning Login.");
+                        Log("Starting log in.");
                         SendMessage("PASS " + oauth);
                         SendMessage("NICK " + botName);
                         SendMessage("JOIN #" + channelName);
-
-                        // Adding Capabilities Requests so that we can parse Viewer information
+                        
                         SendMessage("CAP REQ :twitch.tv/membership");
                         SendMessage("CAP REQ :twitch.tv/commands");
                         SendMessage("CAP REQ :twitch.tv/tags");
 
-                        //_logger.Debug("Login complete Beat bot online.");
-                        //_logger.Debug(_config.Username);
-
-                        string[] cmds = { "!search", "!nowplaying", "!np" };
+                        Log("Connected.");
+                        label_status.Text = "Status: Connected";
 
                         while (!_exit)
                         {
@@ -132,7 +186,6 @@ namespace BeatSaberStreamInfo.UI.Bot
                 }
             } while (_retry);
         }
-
         private void SendMessage(String message)
         {
             if (message.Contains("PASS") || message.Contains("NICK") || message.Contains("JOIN #") || message.Contains("CAP REQ") || message.Contains("PONG"))
@@ -144,24 +197,25 @@ namespace BeatSaberStreamInfo.UI.Bot
 
             _writer.Flush();
         }
-
         private void ProcessCommand(string msg)
         {
-            Console.WriteLine(msg);
             string[] split = msg.Split(new[] { ' ' }, 2);
             string command = split[0];
+
+            if (!cmds.Contains(command))
+                return;
+
             string args = "";
             if (split.Length == 2)
                 args = split[1];
+
             if (command == "!search")
             {
-                Console.WriteLine(args);
+                Log("Command triggered: " + msg);
                 if (args != "")
                 {
-                    Console.WriteLine("bepis");
                     var results = bs.Search(args);
                     string response = "";
-                    Console.WriteLine(results.Count());
                     if (results.Count == 0)
                         response = $"🚫 No BeatSaver results for: \"" + args + "\"";
                     else
@@ -177,10 +231,17 @@ namespace BeatSaberStreamInfo.UI.Bot
                                 response += " || " + EmojiList[i] + " " + results[i];
                         }
                     }
-                    
-                    Console.WriteLine(response);
+
                     SendMessage(response);
                 }
+            }
+        }
+        public void SendNowPlaying(string song)
+        {
+            if (BotThread.IsAlive && check_nowplaying.Checked)
+            {
+                string response = "🎵 Now playing: " + song;
+                SendMessage(response);
             }
         }
     }

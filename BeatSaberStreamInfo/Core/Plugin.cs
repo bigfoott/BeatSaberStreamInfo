@@ -29,6 +29,9 @@ namespace BeatSaberStreamInfo
         Overlay overlay;
         Bot bot;
 
+        bool overlayEnabled = false;
+        bool botEnabled = false;
+
         public void OnApplicationStart()
         {
             SceneManager.activeSceneChanged += SceneManagerOnActiveSceneChanged;
@@ -70,16 +73,21 @@ namespace BeatSaberStreamInfo
                 Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "UserData"));
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
+            if (!Directory.Exists(Path.Combine(dir, "data")))
+                Directory.CreateDirectory(Path.Combine(dir, "data"));
 
-            List<string> sections = new List<string> { "SongName", "Config", "OverlayConfig" };
-            foreach (string s in sections)
+            foreach (string s in new[] { "SongName", "Config", "OverlayConfig", "BotConfig", "data/botsettings" })
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                 {
                     Console.WriteLine("[StreamInfo] " + s + ".txt not found. Creating file...");
                     if (s == "Config")
-                        File.WriteAllText(Path.Combine(dir, "Config.txt"), "OverlayEnabled=True" + Environment.NewLine + "BotEnabled=True");
+                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "OverlayEnabled=True" + Environment.NewLine + "BotEnabled=True");
                     else if (s == "OverlayConfig")
-                        File.WriteAllText(Path.Combine(dir, "OverlayConfig.txt"), "TextColor=White" + Environment.NewLine + "BackgroundColor=Black" + Environment.NewLine + "UseBackgroundImage=False");
+                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "TextColor=White" + Environment.NewLine + "BackgroundColor=Black" + Environment.NewLine + "UseBackgroundImage=False");
+                    else if (s == "BotConfig")
+                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "BotName=" + Environment.NewLine + "ChannelName=" + Environment.NewLine + "OAuth=");
+                    else if (s == "data/botsettings")
+                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "cmd_search=true" + Environment.NewLine + "cmd_nowplaying=true" + Environment.NewLine + "auto_nowplaying=true" + Environment.NewLine + "auto_endstats=true");
                     else
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
                 }
@@ -92,6 +100,7 @@ namespace BeatSaberStreamInfo
                     Action overlayjob = delegate { System.Windows.Forms.Application.Run(overlay); };
                     var OverlayTask = new HMTask(overlayjob);
                     OverlayTask.Run();
+                    overlayEnabled = true;
                 }
                 else if (l.ToLower().StartsWith("botenabled=true"))
                 {
@@ -99,6 +108,7 @@ namespace BeatSaberStreamInfo
                     Action botjob = delegate { System.Windows.Forms.Application.Run(bot); };
                     var BotTask = new HMTask(botjob);
                     BotTask.Run();
+                    botEnabled = true;
                 }
             }
         }
@@ -125,6 +135,8 @@ namespace BeatSaberStreamInfo
                     var level = setupData.difficultyLevel.level;
                     
                     string songname = "\"" + level.songName + "\" by " + level.songSubName + " - " + level.songAuthorName;
+                    if (botEnabled)
+                        bot.SendNowPlaying(songname);
                     File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "               ");
                 }
                 if (ats != null)
@@ -161,6 +173,8 @@ namespace BeatSaberStreamInfo
 
                 ats = null;
                 energy = null;
+
+                //File.WriteAllText(Path.Combine(dir, "SongName.txt"), "");
             }
         }
          

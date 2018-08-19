@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,6 +17,8 @@ namespace BeatSaberStreamInfo.UI.Bot
         public BeatSaver()
         {
             searches = new Dictionary<string, List<string>>();
+
+            ServicePointManager.ServerCertificateValidationCallback += (sender, certificate, chain, sslPolicyErrors) => true;
             wc = new WebClient();
         }
 
@@ -25,14 +29,7 @@ namespace BeatSaberStreamInfo.UI.Bot
                 list = searches[search];
             else
             {
-                try
-                {
-                    list = GetSongsFromJson(wc.DownloadString("https://beatsaver.com/api/songs/search/name/" + search));
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                }
+                list = GetSongsFromJson(wc.DownloadString("https://beatsaver.com/api/songs/search/name/" + search));
                 searches.Add(search, list);
             }
 
@@ -41,14 +38,15 @@ namespace BeatSaberStreamInfo.UI.Bot
 
         private List<string> GetSongsFromJson(string json)
         {
+            json = json.Replace(",", "," + Environment.NewLine);
             var list = new List<string>();
-            List<string> lines = json.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Where(l => l.TrimStart().StartsWith("\"name\"")).ToList();
+            List<string> lines = json.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Where(l => l.StartsWith("\"name\"")).ToList();
             for (int i = 0; i < 3; i++)
             {
                 if (i + 1 > lines.Count())
                     break;
 
-                string l = lines[i].Split(new[] { "\"name\": \"" }, StringSplitOptions.None)[1];
+                string l = lines[i].Split(new[] { "\"name\":\"" }, StringSplitOptions.None)[1];
                 l = l.Substring(0, l.Length - 2);
 
                 list.Add(l);
@@ -56,6 +54,5 @@ namespace BeatSaberStreamInfo.UI.Bot
 
             return list;
         }
-
     }
 }
