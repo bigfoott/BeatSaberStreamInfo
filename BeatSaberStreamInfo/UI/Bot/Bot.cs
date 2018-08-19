@@ -19,6 +19,8 @@ namespace BeatSaberStreamInfo.UI.Bot
         private bool _retry;
         private bool _exit;
 
+        private string EndStats;
+
         private BeatSaver bs;
 
         private Thread BotThread;
@@ -45,6 +47,8 @@ namespace BeatSaberStreamInfo.UI.Bot
                 if (l.StartsWith("auto_endstats="))
                     check_endstats.Checked = l.Replace("auto_endstats=", "").ToLower() == "true";
             }
+            
+            EndStats = File.ReadAllText(Path.Combine(Plugin.dir, "BotEndStats.txt" ));
         }
         private void Bot_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -165,7 +169,7 @@ namespace BeatSaberStreamInfo.UI.Bot
                                 if (2 >= splitInput.Length) continue;
 
                                 var msg = splitInput[2];
-                                if (cmds.Contains(msg.Split(' ')[0]))
+                                if (cmds.Contains(msg.Split(' ')[0].ToLower()))
                                     ProcessCommand(msg);
                             }
                         }
@@ -205,13 +209,14 @@ namespace BeatSaberStreamInfo.UI.Bot
             if (!cmds.Contains(command))
                 return;
 
+            Log("Command triggered: " + msg);
+
             string args = "";
             if (split.Length == 2)
                 args = split[1];
-
-            if (command == "!search")
+            
+            if (command.ToLower() == "!search" && check_cmdsearch.Checked)
             {
-                Log("Command triggered: " + msg);
                 if (args != "")
                 {
                     var results = bs.Search(args);
@@ -235,13 +240,41 @@ namespace BeatSaberStreamInfo.UI.Bot
                     SendMessage(response);
                 }
             }
+            else if ((command.ToLower() == "!nowplaying" || command.ToLower() == "!np") && check_cmdnp.Checked)
+            {
+                string response = File.ReadAllText(Path.Combine(Plugin.dir, "SongName.txt"));
+                if (response == "")
+                    response = "🚫 No song playing right now.";
+                else
+                    response = "🎵 Now playing:" + response;
+
+                SendMessage(response);
+            }
         }
         public void SendNowPlaying(string song)
         {
-            if (BotThread.IsAlive && check_nowplaying.Checked)
+            if (BotThread != null && BotThread.IsAlive && check_nowplaying.Checked)
             {
                 string response = "🎵 Now playing: " + song;
                 SendMessage(response);
+            }
+        }
+        public void SendEndStats(string notes_hit, string notes_total,
+            string notes_percentage, string score, string songname, string songauthor, string songsub)
+        {
+            if (BotThread != null && BotThread.IsAlive && check_endstats.Checked)
+            {
+                string result = EndStats
+                    .Replace("{{notes_hit}}", notes_hit)
+                    .Replace("{{notes_total}}", notes_total)
+                    .Replace("{{notes_percentage}}", notes_percentage + "%")
+                    .Replace("{{score}}", score)
+                    .Replace("{{songname}}", songname)
+                    .Replace("{{songauthor}}", songauthor)
+                    .Replace("{{songsub}}", songsub)
+                    .Replace(Environment.NewLine, " ");
+
+                SendMessage(result);
             }
         }
     }

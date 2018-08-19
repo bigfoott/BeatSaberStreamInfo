@@ -118,9 +118,9 @@
             this.label_multiplier.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.label_multiplier.BackColor = System.Drawing.Color.Transparent;
             this.label_multiplier.Font = new System.Drawing.Font("Microsoft Sans Serif", 50F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label_multiplier.Location = new System.Drawing.Point(41, 41);
+            this.label_multiplier.Location = new System.Drawing.Point(41, 9);
             this.label_multiplier.Name = "label_multiplier";
-            this.label_multiplier.Size = new System.Drawing.Size(185, 75);
+            this.label_multiplier.Size = new System.Drawing.Size(185, 107);
             this.label_multiplier.TabIndex = 7;
             this.label_multiplier.Text = "1x";
             this.label_multiplier.TextAlign = System.Drawing.ContentAlignment.BottomCenter;

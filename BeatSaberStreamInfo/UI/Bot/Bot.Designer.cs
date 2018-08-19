@@ -111,7 +111,6 @@
             // check_endstats
             // 
             this.check_endstats.AutoSize = true;
-            this.check_endstats.Enabled = false;
             this.check_endstats.Location = new System.Drawing.Point(6, 185);
             this.check_endstats.Name = "check_endstats";
             this.check_endstats.Size = new System.Drawing.Size(72, 17);
