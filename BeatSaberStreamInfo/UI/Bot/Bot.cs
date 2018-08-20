@@ -284,8 +284,7 @@ namespace BeatSaberStreamInfo.UI.Bot
                 SendMessage(response);
             }
         }
-        public void SendEndStats(string notes_hit, string notes_total,
-            string notes_percentage, string score, string songname, string songauthor, string songsub)
+        public void SendEndStats(string notes_hit, string notes_total, string notes_percentage, string score, int highestCombo, string songname, string songauthor, string songsub)
         {
             if (BotThread != null && BotThread.IsAlive && check_endstats.Checked)
             {
@@ -294,6 +293,7 @@ namespace BeatSaberStreamInfo.UI.Bot
                     .Replace("{{notes_total}}", notes_total)
                     .Replace("{{notes_percentage}}", notes_percentage + "%")
                     .Replace("{{score}}", score)
+                    .Replace("{{highest_combo}}", highestCombo + "")
                     .Replace("{{songname}}", songname)
                     .Replace("{{songauthor}}", songauthor)
                     .Replace("{{songsub}}", songsub)
