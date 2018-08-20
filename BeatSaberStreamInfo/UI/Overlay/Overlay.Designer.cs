@@ -46,7 +46,7 @@
             this.label_energy.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
             this.label_energy.Location = new System.Drawing.Point(1, 193);
             this.label_energy.Name = "label_energy";
-            this.label_energy.Size = new System.Drawing.Size(549, 82);
+            this.label_energy.Size = new System.Drawing.Size(549, 36);
             this.label_energy.TabIndex = 13;
             this.label_energy.Text = "█████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░  (50%)";
             this.label_energy.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -143,6 +143,7 @@
             this.MinimumSize = new System.Drawing.Size(567, 288);
             this.Name = "Overlay";
             this.Text = "Overlay";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Overlay_FormClosing);
             this.Load += new System.EventHandler(this.Overlay_Load);
             this.ResumeLayout(false);
 

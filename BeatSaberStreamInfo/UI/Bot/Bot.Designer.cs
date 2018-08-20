@@ -195,6 +195,7 @@
             this.MinimumSize = new System.Drawing.Size(314, 241);
             this.Name = "Bot";
             this.Text = "Bot";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Bot_FormClosing);
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Bot_FormClosed);
             this.Load += new System.EventHandler(this.Bot_Load);
             this.ResumeLayout(false);

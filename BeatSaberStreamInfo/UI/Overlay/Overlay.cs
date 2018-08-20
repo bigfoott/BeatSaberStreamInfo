@@ -57,6 +57,10 @@ namespace BeatSaberStreamInfo
 
         private void Overlay_Load(object sender, EventArgs e)
         {
+            string[] pos = File.ReadAllLines(Path.Combine(Plugin.dir, "data/overlaypos.txt"));
+            Size = new System.Drawing.Size(int.Parse(pos[0].Split(',')[0]), int.Parse(pos[0].Split(',')[1]));
+            Location = new System.Drawing.Point(int.Parse(pos[1].Split(',')[0]), int.Parse(pos[1].Split(',')[1]));
+
             config = LoadConfig();
 
             ForeColor = Color.FromName(config["TextColor"]);
@@ -74,6 +78,11 @@ namespace BeatSaberStreamInfo
             label_notes.Font = new Font(MainFont, 20);
 
             label_energy.Font = new Font(MainFont, 18);
+        }
+        private void Overlay_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            string[] lines = { Size.Width + "," + Size.Height, Location.X + "," + Location.Y };
+            File.WriteAllLines(Path.Combine(Plugin.dir, "data/overlaypos.txt"), lines); 
         }
 
         public void UpdateText(string multiplier, string score, string progress, string combo, string notes, string energy)

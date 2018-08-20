@@ -32,6 +32,10 @@ namespace BeatSaberStreamInfo.UI.Bot
 
         private void Bot_Load(object sender, EventArgs e)
         {
+            string[] pos = File.ReadAllLines(Path.Combine(Plugin.dir, "data/botpos.txt"));
+            Size = new System.Drawing.Size(int.Parse(pos[0].Split(',')[0]), int.Parse(pos[0].Split(',')[1]));
+            Location = new System.Drawing.Point(int.Parse(pos[1].Split(',')[0]), int.Parse(pos[1].Split(',')[1]));
+
             bs = new BeatSaver();
 
             ReloadConfig();
@@ -49,6 +53,11 @@ namespace BeatSaberStreamInfo.UI.Bot
             }
             
             EndStats = File.ReadAllText(Path.Combine(Plugin.dir, "BotEndStats.txt" ));
+        }
+        private void Bot_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            string[] lines = { Size.Width + "," + Size.Height, Location.X + "," + Location.Y };
+            File.WriteAllLines(Path.Combine(Plugin.dir, "data/botpos.txt"), lines);
         }
         private void Bot_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -277,5 +286,7 @@ namespace BeatSaberStreamInfo.UI.Bot
                 SendMessage(result);
             }
         }
+
+        
     }
 }

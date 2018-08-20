@@ -81,7 +81,7 @@ namespace BeatSaberStreamInfo
             if (!Directory.Exists(Path.Combine(dir, "data")))
                 Directory.CreateDirectory(Path.Combine(dir, "data"));
 
-            foreach (string s in new[] { "SongName", "Config", "OverlayConfig", "BotConfig", "data/botsettings", "BotEndStats" })
+            foreach (string s in new[] { "SongName", "Config", "OverlayConfig", "BotConfig", "BotEndStats", "data/botsettings", "data/overlaypos", "data/botpos" })
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                 {
                     Console.WriteLine("[StreamInfo] " + s + ".txt not found. Creating file...");
@@ -95,6 +95,10 @@ namespace BeatSaberStreamInfo
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "cmd_search=true" + Environment.NewLine + "cmd_nowplaying=true" + Environment.NewLine + "auto_nowplaying=true" + Environment.NewLine + "auto_endstats=true");
                     else if (s == "BotEndStats")
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "Song completed: {{songname}} || {{notes_percentage}} accuracy || {{score}} points");
+                    else if (s == "data/overlaypos")
+                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "567,288" + Environment.NewLine + "0,0");
+                    else if (s == "data/botpos")
+                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "314,241" + Environment.NewLine + "0,0");
                     else
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
                 }
