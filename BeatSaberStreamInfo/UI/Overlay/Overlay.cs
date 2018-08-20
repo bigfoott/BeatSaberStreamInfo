@@ -84,7 +84,7 @@ namespace BeatSaberStreamInfo
             string[] lines = { Size.Width + "," + Size.Height, Location.X + "," + Location.Y };
             File.WriteAllLines(Path.Combine(Plugin.dir, "data/overlaypos.txt"), lines);
         }
-
+        
         public void ShutDown()
         {
             Close();

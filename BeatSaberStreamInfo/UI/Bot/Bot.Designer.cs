@@ -37,10 +37,10 @@
             this.label_status = new System.Windows.Forms.Label();
             this.check_endstats = new System.Windows.Forms.CheckBox();
             this.label_autosettings = new System.Windows.Forms.Label();
-            this.log = new System.Windows.Forms.RichTextBox();
             this.label_commands = new System.Windows.Forms.Label();
             this.check_cmdsearch = new System.Windows.Forms.CheckBox();
             this.check_cmdnp = new System.Windows.Forms.CheckBox();
+            this.text_log = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // button_connect
@@ -90,7 +90,7 @@
             // 
             this.button_clear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button_clear.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button_clear.Location = new System.Drawing.Point(245, 4);
+            this.button_clear.Location = new System.Drawing.Point(286, 4);
             this.button_clear.Name = "button_clear";
             this.button_clear.Size = new System.Drawing.Size(41, 24);
             this.button_clear.TabIndex = 5;
@@ -111,6 +111,8 @@
             // check_endstats
             // 
             this.check_endstats.AutoSize = true;
+            this.check_endstats.Checked = true;
+            this.check_endstats.CheckState = System.Windows.Forms.CheckState.Checked;
             this.check_endstats.Location = new System.Drawing.Point(6, 185);
             this.check_endstats.Name = "check_endstats";
             this.check_endstats.Size = new System.Drawing.Size(72, 17);
@@ -127,18 +129,6 @@
             this.label_autosettings.Size = new System.Drawing.Size(73, 13);
             this.label_autosettings.TabIndex = 8;
             this.label_autosettings.Text = "Auto Settings:";
-            // 
-            // log
-            // 
-            this.log.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.log.Location = new System.Drawing.Point(106, 30);
-            this.log.Name = "log";
-            this.log.ReadOnly = true;
-            this.log.Size = new System.Drawing.Size(180, 161);
-            this.log.TabIndex = 9;
-            this.log.Text = "";
             // 
             // label_commands
             // 
@@ -174,15 +164,28 @@
             this.check_cmdnp.Text = "!nowplaying";
             this.check_cmdnp.UseVisualStyleBackColor = true;
             // 
+            // text_log
+            // 
+            this.text_log.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.text_log.Location = new System.Drawing.Point(106, 27);
+            this.text_log.Multiline = true;
+            this.text_log.Name = "text_log";
+            this.text_log.ReadOnly = true;
+            this.text_log.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.text_log.Size = new System.Drawing.Size(221, 243);
+            this.text_log.TabIndex = 13;
+            // 
             // Bot
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(298, 203);
+            this.ClientSize = new System.Drawing.Size(339, 282);
+            this.Controls.Add(this.text_log);
             this.Controls.Add(this.check_cmdnp);
             this.Controls.Add(this.check_cmdsearch);
             this.Controls.Add(this.label_commands);
-            this.Controls.Add(this.log);
             this.Controls.Add(this.label_autosettings);
             this.Controls.Add(this.check_endstats);
             this.Controls.Add(this.label_status);
@@ -213,9 +216,9 @@
         private System.Windows.Forms.Label label_status;
         private System.Windows.Forms.CheckBox check_endstats;
         private System.Windows.Forms.Label label_autosettings;
-        private System.Windows.Forms.RichTextBox log;
         private System.Windows.Forms.Label label_commands;
         private System.Windows.Forms.CheckBox check_cmdsearch;
         private System.Windows.Forms.CheckBox check_cmdnp;
+        private System.Windows.Forms.TextBox text_log;
     }
 }

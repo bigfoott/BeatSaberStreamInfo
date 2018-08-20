@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -78,13 +79,14 @@ namespace BeatSaberStreamInfo.UI.Bot
                 Log("ERROR: Please make sure all info in your BotConfig.txt file is correct.");
                 return;
             }
-
+            
             BotThread = new Thread(new ThreadStart(Init));
             BotThread.Start();
         }
         private void button_disconnect_Click(object sender, EventArgs e)
         {
             _exit = true;
+            
             BotThread.Abort();
 
             button_connect.Enabled = true;
@@ -96,7 +98,7 @@ namespace BeatSaberStreamInfo.UI.Bot
         }
         private void button_clear_Click(object sender, EventArgs e)
         {
-            log.Text = "";
+            text_log.Text = "";
         }
         private void button_reload_Click(object sender, EventArgs e)
         {
@@ -123,10 +125,19 @@ namespace BeatSaberStreamInfo.UI.Bot
         }
         private void Log(string s)
         {
-            if (log.Text != "")
-                log.AppendText(Environment.NewLine + "[" + DateTime.Now.ToString("hh:mm:ss tt") + "] " + s);
+            //Console.WriteLine("before: " + text_log.Text.Length);
+
+            string output = "";
+            if (text_log.Text != "")
+                output = Environment.NewLine + "[" + DateTime.Now.ToString("hh:mm:ss tt") + "] " + s;
             else
-                log.AppendText("[" + DateTime.Now.ToString("hh:mm:ss tt") + "] " + s);
+                output = "[" + DateTime.Now.ToString("hh:mm:ss tt") + "] " + s;
+
+            //if (text_log.Text.Length + output.Length >= 1000)
+            //    text_log.Text = text_log.Text.Substring(output.Length);
+            text_log.AppendText(output);
+
+            //Console.WriteLine("after: " + text_log.Text.Length);
         }
         private void Init()
         {
@@ -142,13 +153,11 @@ namespace BeatSaberStreamInfo.UI.Bot
                     using (var reader = new StreamReader(stream))
                     using (var writer = new StreamWriter(stream))
                     {
-                        // Set a global Writer
                         _writer = writer;
 
                         button_connect.Enabled = false;
                         button_disconnect.Enabled = true;
                         button_reload.Enabled = false;
-                        // Login Information for the irc client
                         Log("Starting log in.");
                         SendMessage("PASS " + oauth);
                         SendMessage("NICK " + botName);
@@ -166,15 +175,14 @@ namespace BeatSaberStreamInfo.UI.Bot
                             string inputLine;
                             while ((inputLine = reader.ReadLine()) != null || _exit)
                             {
-                                //_logger.Debug(inputLine);
 
                                 if (inputLine == null) continue;
 
                                 var splitInput = inputLine.Split(' ');
                                 if (splitInput[0] == "PING")
                                 {
-                                    //_logger.Info("Responded to twitch ping.");
                                     SendMessage("PONG " + splitInput[1]);
+                                    Thread.Sleep(1750);
                                 }
 
                                 splitInput = inputLine.Split(':');
@@ -183,14 +191,16 @@ namespace BeatSaberStreamInfo.UI.Bot
 
                                 var msg = splitInput[2];
                                 if (cmds.Contains(msg.Split(' ')[0].ToLower()))
+                                {
                                     ProcessCommand(msg);
+                                    Thread.Sleep(1750);
+                                }
                             }
                         }
                     }
                 }
-                catch (Exception e)
+                catch
                 {
-                    //_logger.Debug(e.ToString());
                     _retry = ++retryCount <= 20;
                     if (_exit)
                     {
@@ -203,6 +213,7 @@ namespace BeatSaberStreamInfo.UI.Bot
                 }
             } while (_retry);
         }
+
         private void SendMessage(String message)
         {
             if (message.Contains("PASS") || message.Contains("NICK") || message.Contains("JOIN #") || message.Contains("CAP REQ") || message.Contains("PONG"))
@@ -219,10 +230,8 @@ namespace BeatSaberStreamInfo.UI.Bot
             string[] split = msg.Split(new[] { ' ' }, 2);
             string command = split[0];
 
-            if (!cmds.Contains(command))
+            if (!cmds.Contains(command.ToLower()))
                 return;
-
-            Log("Command triggered: " + msg);
 
             string args = "";
             if (split.Length == 2)
@@ -232,6 +241,8 @@ namespace BeatSaberStreamInfo.UI.Bot
             {
                 if (args != "")
                 {
+                    Log("Command run: " + msg);
+
                     var results = bs.Search(args);
                     string response = "";
                     if (results.Count == 0)
@@ -255,6 +266,7 @@ namespace BeatSaberStreamInfo.UI.Bot
             }
             else if ((command.ToLower() == "!nowplaying" || command.ToLower() == "!np") && check_cmdnp.Checked)
             {
+                Log("Command run: " + msg);
                 string response = File.ReadAllText(Path.Combine(Plugin.dir, "SongName.txt"));
                 if (response == "")
                     response = "🚫 No song playing right now.";
@@ -290,7 +302,5 @@ namespace BeatSaberStreamInfo.UI.Bot
                 SendMessage(result);
             }
         }
-
-        
     }
 }
