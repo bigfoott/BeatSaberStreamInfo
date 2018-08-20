@@ -82,9 +82,13 @@ namespace BeatSaberStreamInfo
         private void Overlay_FormClosing(object sender, FormClosingEventArgs e)
         {
             string[] lines = { Size.Width + "," + Size.Height, Location.X + "," + Location.Y };
-            File.WriteAllLines(Path.Combine(Plugin.dir, "data/overlaypos.txt"), lines); 
+            File.WriteAllLines(Path.Combine(Plugin.dir, "data/overlaypos.txt"), lines);
         }
 
+        public void ShutDown()
+        {
+            Close();
+        }
         public void UpdateText(string multiplier, string score, string progress, string combo, string notes, string energy)
         {
             int percent = Convert.ToInt32(energy);

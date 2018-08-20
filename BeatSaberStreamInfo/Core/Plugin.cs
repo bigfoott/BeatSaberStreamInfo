@@ -26,6 +26,8 @@ namespace BeatSaberStreamInfo
         private SongInfo info;
         Action job;
         HMTask writer;
+        HMTask OverlayTask;
+        HMTask BotTask;
 
         Overlay overlay;
         Bot bot;
@@ -110,7 +112,7 @@ namespace BeatSaberStreamInfo
                     Console.WriteLine("[StreamInfo] Launching overlay...");
                     overlay = new Overlay();
                     Action overlayjob = delegate { System.Windows.Forms.Application.Run(overlay); };
-                    var OverlayTask = new HMTask(overlayjob);
+                    OverlayTask = new HMTask(overlayjob);
                     OverlayTask.Run();
 
                     overlayRefreshRate = 100;
@@ -137,7 +139,7 @@ namespace BeatSaberStreamInfo
                     Console.WriteLine("[StreamInfo] Launching bot...");
                     bot = new Bot();
                     Action botjob = delegate { System.Windows.Forms.Application.Run(bot); };
-                    var BotTask = new HMTask(botjob);
+                    BotTask = new HMTask(botjob);
                     BotTask.Run();
                     Console.WriteLine("[StreamInfo] Bot started.");
                     botEnabled = true;
@@ -283,6 +285,17 @@ namespace BeatSaberStreamInfo
 
         public void OnApplicationQuit()
         {
+            if (botEnabled)
+            {
+                bot.ShutDown();
+                BotTask.Cancel();
+            }
+            if (overlayEnabled)
+            {
+                overlay.ShutDown();
+                OverlayTask.Cancel();
+            }
+
             SceneManager.activeSceneChanged -= SceneManagerOnActiveSceneChanged;
             SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
         }

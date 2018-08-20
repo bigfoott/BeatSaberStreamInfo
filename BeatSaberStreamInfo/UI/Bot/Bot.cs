@@ -57,7 +57,7 @@ namespace BeatSaberStreamInfo.UI.Bot
         private void Bot_FormClosing(object sender, FormClosingEventArgs e)
         {
             string[] lines = { Size.Width + "," + Size.Height, Location.X + "," + Location.Y };
-            File.WriteAllLines(Path.Combine(Plugin.dir, "data/botpos.txt"), lines);
+            File.WriteAllLines(Path.Combine(Plugin.dir, "data/botpos.txt"), lines); 
         }
         private void Bot_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -116,6 +116,10 @@ namespace BeatSaberStreamInfo.UI.Bot
                 if (l.StartsWith("OAuth="))
                     oauth = l.Replace("OAuth=", "");
             }
+        }
+        public void ShutDown()
+        {
+            Close();
         }
         private void Log(string s)
         {
