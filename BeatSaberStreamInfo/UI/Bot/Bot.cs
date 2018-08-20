@@ -63,8 +63,8 @@ namespace BeatSaberStreamInfo.UI.Bot
         {
             string ret = "cmd_search=" + check_cmdsearch.Checked + Environment.NewLine +
                 "cmd_nowplaying=" + check_cmdnp.Checked + Environment.NewLine +
-                "auto_nowplaying=" + check_nowplaying + Environment.NewLine +
-                "auto_endstats=" + check_endstats;
+                "auto_nowplaying=" + check_nowplaying.Checked + Environment.NewLine +
+                "auto_endstats=" + check_endstats.Checked;
             File.WriteAllText(Path.Combine(Plugin.dir, "data/botsettings.txt"), ret);
 
         }
