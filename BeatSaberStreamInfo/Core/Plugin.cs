@@ -163,6 +163,7 @@ namespace BeatSaberStreamInfo
                     ResetBailedOut();
                     writer = new HMTask(job);
                     writer.Run();
+                    highestCombo = 0;
 
                     Console.WriteLine("[StreamInfo] Finding objects...");
                     // Get objects from scene to pull song data from.
@@ -234,7 +235,6 @@ namespace BeatSaberStreamInfo
 
                     InSong = false;
                     writer.Cancel();
-
                     ats = null;
                     energy = null;
                     File.WriteAllText(Path.Combine(dir, "SongName.txt"), "");
