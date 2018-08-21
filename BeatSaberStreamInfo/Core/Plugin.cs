@@ -128,7 +128,6 @@ namespace BeatSaberStreamInfo
                 Console.WriteLine("[StreamInfo] Hooking Events...");
                 if (score != null)
                 {
-                    Console.WriteLine("score");
                     score.comboDidChangeEvent += OnComboChange;
                     score.multiplierDidChangeEvent += OnMultiplierChange;
                     score.noteWasMissedEvent += OnNoteMiss;
@@ -137,9 +136,9 @@ namespace BeatSaberStreamInfo
                 }
                 if (energy != null)
                 {
-                    Console.WriteLine("energy");
                     energy.gameEnergyDidChangeEvent += OnEnergyChange;
-                    energy.gameEnergyDidReach0Event += OnEnergyFail;
+                    if (!BailOutInstalled)
+                        energy.gameEnergyDidReach0Event += OnEnergyFail;
                 }
 
                 info.SetDefault();
