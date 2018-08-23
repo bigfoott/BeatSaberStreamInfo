@@ -54,13 +54,13 @@ namespace BeatSaberStreamInfo
 
             return c;
         }
-
+        
         private void Overlay_Load(object sender, EventArgs e)
         {
             string[] pos = File.ReadAllLines(Path.Combine(Plugin.dir, "data/overlaypos.txt"));
             Size = new System.Drawing.Size(int.Parse(pos[0].Split(',')[0]), int.Parse(pos[0].Split(',')[1]));
             Location = new System.Drawing.Point(int.Parse(pos[1].Split(',')[0]), int.Parse(pos[1].Split(',')[1]));
-
+            
             config = LoadConfig();
 
             ForeColor = Color.FromName(config["TextColor"]);
@@ -77,14 +77,31 @@ namespace BeatSaberStreamInfo
             label_combotext.Font = new Font(MainFont, 25);
             label_notes.Font = new Font(MainFont, 20);
 
+            label_timetext.Font = new Font(MainFont, 15);
+            label_accuracy.Font = new Font(MainFont, 15);
+
             label_energy.Font = new Font(MainFont, 18);
+            
+            Text = "Overlay (" + Size.Width + "x" + Size.Height + ")";
         }
         private void Overlay_FormClosing(object sender, FormClosingEventArgs e)
         {
             string[] lines = { Size.Width + "," + Size.Height, Location.X + "," + Location.Y };
             File.WriteAllLines(Path.Combine(Plugin.dir, "data/overlaypos.txt"), lines);
         }
-        
+        private void Overlay_ResizeEnd(object sender, EventArgs e)
+        {
+            Text = "Overlay (" + Size.Width + "x" + Size.Height + ")";
+            Refresh();
+        }
+        private void Overlay_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Oemtilde)
+            {
+                Refresh();
+            }   
+        }
+
         public void ShutDown()
         {
             Close();
@@ -104,7 +121,42 @@ namespace BeatSaberStreamInfo
             label_progress.Text = progress;
             label_combo.Text = combo;
             label_notes.Text = notes;
-            label_energy.Text = bar + "  (" + percent + "%)";
+            label_energy.Text = "HP  " + bar + "  (" + percent + "%)";
+        }
+
+        private void label_multiplier_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label_energy_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label_notes_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label_progress_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label_combotext_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label_combo_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label_score_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -66,33 +66,23 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Overlay\Overlay.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Overlay\Overlay.Designer.cs">
+      <DependentUpon>Overlay.cs</DependentUpon>
+    </Compile>
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Bot\BeatSaver.cs" />
-    <Compile Include="UI\Bot\Bot.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\Bot\Bot.Designer.cs">
-      <DependentUpon>Bot.cs</DependentUpon>
-    </Compile>
-    <Compile Include="UI\Overlay\Overlay.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UI\Overlay\Overlay.Designer.cs">
-      <DependentUpon>Overlay.cs</DependentUpon>
     </Compile>
     <Compile Include="Core\Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\SongInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="UI\Bot\Bot.resx">
-      <DependentUpon>Bot.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UI\Overlay\Overlay.resx">
+    <EmbeddedResource Include="Overlay\Overlay.resx">
       <DependentUpon>Overlay.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources.resx">

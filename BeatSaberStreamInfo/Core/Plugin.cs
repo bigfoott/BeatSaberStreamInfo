@@ -7,7 +7,6 @@ using IllusionPlugin;
 using IllusionInjector;
 using System.IO;
 using System.Threading;
-using BeatSaberStreamInfo.UI.Bot;
 using System.Windows.Forms;
 
 namespace BeatSaberStreamInfo
@@ -29,12 +28,10 @@ namespace BeatSaberStreamInfo
         Action StartJob;
         HMTask writer;
         HMTask OverlayTask;
-        HMTask BotTask;
         HMTask StartTask;
 
         Overlay overlay;
-        Bot bot;
-
+        
         string _songName;
         string _songAuthor;
         string _songSub;
@@ -42,7 +39,6 @@ namespace BeatSaberStreamInfo
         int highestCombo = 0;
         
         bool overlayEnabled = false;
-        bool botEnabled = false;
 
         public void OnApplicationStart()
         {
@@ -56,105 +52,8 @@ namespace BeatSaberStreamInfo
                 Console.WriteLine("[StreamInfo] BailOut plugin not found.");
             
             info = new SongInfo();
-            
-            job = delegate
-            {
-                var lastWritten = new Dictionary<string, string>();
-                Console.WriteLine("[StreamInfo] HMTask started.");
-                while (InSong)
-                {
-                    if (ats != null)
-                    {
-                        string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
-                        string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                        string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
-                        
-                        overlay.UpdateText(info.GetVal("multiplier"),
-                            info.GetVal("score"),
-                            time + " / " + totaltime + " (" + percent + "%)",
-                            info.GetVal("combo"),
-                            info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)",
-                            info.GetVal("energy"));
-                    }
-                    Thread.Sleep(overlayRefreshRate);
-                }
-            };
-            writer = new HMTask(job);
 
-            StartJob = delegate
-            {
-                Console.WriteLine("[StreamInfo] Entered song scene. Initializing...");
-                InSong = true;
-                EnergyReached0 = false;
-                if (BailOutInstalled)
-                    ResetBailedOut();
-                writer = new HMTask(job);
-                writer.Run();
-                highestCombo = 0;
-
-                Console.WriteLine("[StreamInfo] Finding objects...");
-                while (!UnityEngine.Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().Any()) { }
-                ats = UnityEngine.Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
-
-                while (!UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().Any()) { }
-                energy = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
-
-                while (!UnityEngine.Resources.FindObjectsOfTypeAll<ScoreController>().Any()) { }
-                var score = UnityEngine.Resources.FindObjectsOfTypeAll<ScoreController>().FirstOrDefault();
-
-                while (!UnityEngine.Resources.FindObjectsOfTypeAll<MainGameSceneSetup>().Any()) { }
-                var setupData = UnityEngine.Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
-
-                string progress = "";
-
-                if (setupData != null)
-                {
-                    Console.WriteLine("[StreamInfo] Getting song name data...");
-                    var level = setupData.difficultyLevel.level;
-
-                    _songName = level.songName;
-                    _songSub = level.songSubName;
-                    _songAuthor = level.songAuthorName;
-
-                    string songname = "\"" + _songName + "\" by " + _songSub + " - " + _songAuthor;
-                    if (botEnabled)
-                        bot.SendNowPlaying(songname);
-                    File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "               ");
-                }
-                if (ats != null)
-                {
-                    progress = "0:00/" + Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00") + " (0%)";
-                }
-                Console.WriteLine("[StreamInfo] Hooking Events...");
-                if (score != null)
-                {
-                    score.comboDidChangeEvent += OnComboChange;
-                    score.multiplierDidChangeEvent += OnMultiplierChange;
-                    score.noteWasMissedEvent += OnNoteMiss;
-                    score.noteWasCutEvent += OnNoteCut;
-                    score.scoreDidChangeEvent += OnScoreChange;
-                }
-                if (energy != null)
-                {
-                    energy.gameEnergyDidChangeEvent += OnEnergyChange;
-                    if (!BailOutInstalled)
-                        energy.gameEnergyDidReach0Event += OnEnergyFail;
-                }
-
-                info.SetDefault();
-
-                if (overlayEnabled)
-                {
-                    Console.WriteLine("[StreamInfo] Updating overlay...");
-                    overlay.UpdateText(info.GetVal("multiplier"),
-                                info.GetVal("score"),
-                                progress,
-                                info.GetVal("combo"),
-                                info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)",
-                                info.GetVal("energy"));
-                }
-            };
-            StartTask = new HMTask(StartJob);
+            InitTasks();
 
             if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "UserData")))
                 Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "UserData"));
@@ -163,24 +62,16 @@ namespace BeatSaberStreamInfo
             if (!Directory.Exists(Path.Combine(dir, "data")))
                 Directory.CreateDirectory(Path.Combine(dir, "data"));
 
-            foreach (string s in new[] { "SongName", "Config", "OverlayConfig", "BotConfig", "BotEndStats", "data/botsettings", "data/overlaypos", "data/botpos" })
+            foreach (string s in new[] { "SongName", "Config", "OverlayConfig", "data/overlaypos" })
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                 {
                     Console.WriteLine("[StreamInfo] " + s + ".txt not found. Creating file...");
                     if (s == "Config")
-                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "OverlayEnabled=True" + Environment.NewLine + "BotEnabled=True");
+                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "OverlayEnabled=True");
                     else if (s == "OverlayConfig")
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "TextColor=White" + Environment.NewLine + "BackgroundColor=Black" + Environment.NewLine + "UseBackgroundImage=False" + Environment.NewLine + "RefreshRate=100");
-                    else if (s == "BotConfig")
-                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "BotName=" + Environment.NewLine + "ChannelName=" + Environment.NewLine + "OAuth=");
-                    else if (s == "data/botsettings")
-                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "cmd_search=true" + Environment.NewLine + "cmd_nowplaying=true" + Environment.NewLine + "auto_nowplaying=true" + Environment.NewLine + "auto_endstats=true");
-                    else if (s == "BotEndStats")
-                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "Song completed: {{songname}} || {{notes_percentage}} accuracy || {{score}} points");
                     else if (s == "data/overlaypos")
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "567,288" + Environment.NewLine + "0,0");
-                    else if (s == "data/botpos")
-                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "314,241" + Environment.NewLine + "0,0");
                     else
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
                 }
@@ -195,7 +86,7 @@ namespace BeatSaberStreamInfo
                     Action overlayjob = delegate { System.Windows.Forms.Application.Run(overlay); };
                     OverlayTask = new HMTask(overlayjob);
                     OverlayTask.Run();
-
+                    overlay.Refresh();
                     overlayRefreshRate = 100;
                     foreach (string line in File.ReadAllLines(Path.Combine(dir, "OverlayConfig.txt")))
                     {
@@ -203,34 +94,22 @@ namespace BeatSaberStreamInfo
                         {
                             if (int.TryParse(line.Substring(12), out int result))
                             {
-                                if (result < 10)
-                                    result = 10;
+                                if (result < 1)
+                                    result = 1;
 
                                 overlayRefreshRate = result; 
                             }
-
                         }
                     }
 
                     Console.WriteLine("[StreamInfo] Overlay started.");
                     overlayEnabled = true;
                 }
-                else if (l.ToLower().StartsWith("botenabled=true"))
-                {
-                    Console.WriteLine("[StreamInfo] Launching bot...");
-                    bot = new Bot();
-                    bot.FormClosed += Bot_FormClosed;
-                    Action botjob = delegate { System.Windows.Forms.Application.Run(bot); };
-                    BotTask = new HMTask(botjob);
-                    BotTask.Run();
-                    Console.WriteLine("[StreamInfo] Bot started.");
-                    botEnabled = true;
-                }
             }
         }
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)
         {
-            if (overlayEnabled || botEnabled)
+            if (overlayEnabled)
             {
                 if (arg1.name == "DefaultEnvironment" || arg1.name == "BigMirrorEnvironment" || arg1.name == "TriangleEnvironment" || arg1.name == "NiceEnvironment")
                 {
@@ -240,21 +119,13 @@ namespace BeatSaberStreamInfo
                 else if (InSong)
                 {
                     Console.WriteLine("[StreamInfo] Exited song scene. Resetting...");
-
-                    if (botEnabled)
-                        bot.SendEndStats(
-                            info.GetVal("notes_hit"),
-                            info.GetVal("notes_total"),
-                            info.GetVal("percent"),
-                            info.GetVal("score"),
-                            highestCombo,
-                            _songName, _songAuthor, _songSub);
-
+                    
                     InSong = false;
                     writer.Cancel();
                     ats = null;
                     energy = null;
                     File.WriteAllText(Path.Combine(dir, "SongName.txt"), "");
+
                     Console.WriteLine("[StreamInfo] Done! Ready for next song.");
                 }
             }
@@ -301,15 +172,10 @@ namespace BeatSaberStreamInfo
             File.WriteAllText(Path.Combine(dir, "Energy.txt"), "");
         }
 
-        private void Bot_FormClosed(object sender, FormClosedEventArgs e)
-        {
-            bot = null;
-            botEnabled = false;
-        }
         private void Overlay_FormClosed(object sender, FormClosedEventArgs e)
         {
             overlay = null;
-            botEnabled = false;
+            overlayEnabled = false;
         }
 
         private void ResetBailedOut()
@@ -320,15 +186,102 @@ namespace BeatSaberStreamInfo
         {
             return BailOutModePlugin.BailedOut;
         }
+        private void InitTasks()
+        {
+            job = delegate
+            {
+                Console.WriteLine("[StreamInfo] HMTask started.");
+                while (InSong)
+                {
+                    if (ats != null)
+                    {
+                        string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
+                        string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
+                        string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
+
+                        overlay.UpdateText(info.GetVal("multiplier"),
+                            info.GetVal("score"),
+                            time + " / " + totaltime + " (" + percent + "%)",
+                            info.GetVal("combo"),
+                            info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)",
+                            info.GetVal("energy"));
+                    }
+                    Thread.Sleep(overlayRefreshRate);
+                }
+            };
+            writer = new HMTask(job);
+
+            StartJob = delegate
+            {
+                Console.WriteLine("[StreamInfo] Entered song scene. Initializing...");
+                InSong = true;
+                EnergyReached0 = false;
+                if (BailOutInstalled)
+                    ResetBailedOut();
+                writer = new HMTask(job);
+                writer.Run();
+                highestCombo = 0;
+                Thread.Sleep(500);
+
+                Console.WriteLine("[StreamInfo] Finding objects...");
+                ats = UnityEngine.Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
+                energy = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
+                var score = UnityEngine.Resources.FindObjectsOfTypeAll<ScoreController>().FirstOrDefault();
+                var setupData = UnityEngine.Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
+
+                string progress = "";
+
+                if (setupData != null)
+                {
+                    Console.WriteLine("[StreamInfo] Getting song name data...");
+                    var level = setupData.difficultyLevel.level;
+
+                    _songName = level.songName;
+                    _songSub = level.songSubName;
+                    _songAuthor = level.songAuthorName;
+
+                    string songname = "\"" + _songName + "\" by " + _songSub + " - " + _songAuthor;
+                    File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "               ");
+                }
+                if (ats != null)
+                {
+                    progress = "0:00/" + Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00") + " (0%)";
+                }
+                Console.WriteLine("[StreamInfo] Hooking Events...");
+                if (score != null)
+                {
+                    score.comboDidChangeEvent += OnComboChange;
+                    score.multiplierDidChangeEvent += OnMultiplierChange;
+                    score.noteWasMissedEvent += OnNoteMiss;
+                    score.noteWasCutEvent += OnNoteCut;
+                    score.scoreDidChangeEvent += OnScoreChange;
+                }
+                if (energy != null)
+                {
+                    energy.gameEnergyDidChangeEvent += OnEnergyChange;
+                    if (!BailOutInstalled)
+                        energy.gameEnergyDidReach0Event += OnEnergyFail;
+                }
+
+                info.SetDefault();
+
+                if (overlayEnabled)
+                {
+                    Console.WriteLine("[StreamInfo] Updating overlay...");
+                    overlay.UpdateText(info.GetVal("multiplier"),
+                                info.GetVal("score"),
+                                progress,
+                                info.GetVal("combo"),
+                                info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)",
+                                info.GetVal("energy"));
+                }
+            };
+            StartTask = new HMTask(StartJob);
+        }
 
         public void OnApplicationQuit()
         {
-            if (botEnabled)
-            {
-                bot.ShutDown();
-                BotTask.Cancel();
-            }
-            if (overlayEnabled)
+            if (overlayEnabled && overlay != null)
             {
                 overlay.ShutDown();
                 OverlayTask.Cancel();
