@@ -6,7 +6,7 @@ Add the .dll to the Plugins folder of your game and launch the game. Default set
 
 ## Configuration
 
-**`OverlayEnabled`** - Either 0 or 1, for disabled and enabled.
+**`OverlayEnabled`** - (0 or 1)
 
 **`RefreshRate`** - In miliseconds,  however 100 (default) is nearly instant. Lower numbers may cause lag.
 
