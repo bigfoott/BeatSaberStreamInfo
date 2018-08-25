@@ -71,7 +71,15 @@ namespace BeatSaberStreamInfo
                     else if (s == "OverlayConfig")
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "TextColor=White" + Environment.NewLine + "BackgroundColor=Black" + Environment.NewLine + "UseBackgroundImage=False" + Environment.NewLine + "RefreshRate=100");
                     else if (s == "data/overlaypos")
-                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "567,288" + Environment.NewLine + "0,0");
+                        File.WriteAllText(Path.Combine(dir, s + ".txt"), 
+                            "567,288" + Environment.NewLine +
+                            "0,0" + Environment.NewLine +
+                            "75,198" + Environment.NewLine +
+                            "307,134" + Environment.NewLine +
+                            "16,132" + Environment.NewLine +
+                            "61,19" + Environment.NewLine +
+                            "170,83" + Environment.NewLine +
+                            "303,19" + Environment.NewLine);
                     else
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
                 }
@@ -111,22 +119,17 @@ namespace BeatSaberStreamInfo
         {
             if (overlayEnabled)
             {
-                if (arg1.name == "DefaultEnvironment" || arg1.name == "BigMirrorEnvironment" || arg1.name == "TriangleEnvironment" || arg1.name == "NiceEnvironment")
+                if (arg1.name == "Menu" && InSong)
+                {
+                    Console.WriteLine("[StreamInfo] Exited song scene. Ready to reset.");
+                    var resultsView = UnityEngine.Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
+                    if (resultsView != null)
+                        resultsView.continueButtonPressedEvent += OnContinueClick;
+                }
+                else if (arg1.name == "DefaultEnvironment" || arg1.name == "BigMirrorEnvironment" || arg1.name == "TriangleEnvironment" || arg1.name == "NiceEnvironment")
                 {
                     StartTask = new HMTask(StartJob);
                     StartTask.Run();
-                }
-                else if (InSong)
-                {
-                    Console.WriteLine("[StreamInfo] Exited song scene. Resetting...");
-                    
-                    InSong = false;
-                    writer.Cancel();
-                    ats = null;
-                    energy = null;
-                    File.WriteAllText(Path.Combine(dir, "SongName.txt"), "");
-
-                    Console.WriteLine("[StreamInfo] Done! Ready for next song.");
                 }
             }
         }
@@ -143,12 +146,11 @@ namespace BeatSaberStreamInfo
         }
         private void OnNoteMiss(NoteData data, int c)
         {
-            info.combo = 0;
             info.notes_total++;
         }
         private void OnNoteCut(NoteData data, NoteCutInfo nci, int c)
         {
-            if (nci.allIsOK)
+            if (data.noteType != NoteType.Bomb && nci.allIsOK)
             {
                 info.notes_hit++;
                 info.notes_total++;
@@ -160,18 +162,43 @@ namespace BeatSaberStreamInfo
         {
             info.score = c;
         }
-
         private void OnEnergyChange(float f)
         {
             if (!EnergyReached0)
                 info.energy = (int)(f * 100);
+            else
+                info.energy = -1;
         }
         private void OnEnergyFail()
         {
             EnergyReached0 = true;
-            File.WriteAllText(Path.Combine(dir, "Energy.txt"), "");
+            if (BailOutInstalled)
+                info.energy = -1;
+            else
+                info.energy = -2;
         }
 
+        private void OnContinueClick(ResultsViewController obj)
+        {
+            Console.WriteLine("[StreamInfo] Continue pressed. Resetting...");
+
+            InSong = false;
+            writer.Cancel();
+            ats = null;
+            energy = null;
+            File.WriteAllText(Path.Combine(dir, "SongName.txt"), "");
+
+            Console.WriteLine("[StreamInfo] Done! Ready for next song.");
+
+            info.SetDefault();
+            overlay.UpdateText(info.GetVal("multiplier"),
+                            info.GetVal("score"),
+                            "0:00 / 0:00 (0%)",
+                            info.GetVal("combo"),
+                            info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)",
+                            info.GetVal("energy"));
+        }
+        
         private void Overlay_FormClosed(object sender, FormClosedEventArgs e)
         {
             overlay = null;
@@ -191,7 +218,7 @@ namespace BeatSaberStreamInfo
             job = delegate
             {
                 Console.WriteLine("[StreamInfo] HMTask started.");
-                while (InSong)
+                while (InSong && overlayEnabled)
                 {
                     if (ats != null)
                     {
@@ -228,20 +255,25 @@ namespace BeatSaberStreamInfo
                 energy = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
                 var score = UnityEngine.Resources.FindObjectsOfTypeAll<ScoreController>().FirstOrDefault();
                 var setupData = UnityEngine.Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
-
                 string progress = "";
 
                 if (setupData != null)
                 {
                     Console.WriteLine("[StreamInfo] Getting song name data...");
                     var level = setupData.difficultyLevel.level;
-
+                    
                     _songName = level.songName;
                     _songSub = level.songSubName;
                     _songAuthor = level.songAuthorName;
 
                     string songname = "\"" + _songName + "\" by " + _songSub + " - " + _songAuthor;
                     File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "               ");
+
+                    if (setupData.gameplayOptions.noEnergy)
+                    {
+                        EnergyReached0 = true;
+                        info.energy = -3;
+                    }
                 }
                 if (ats != null)
                 {

@@ -23,6 +23,8 @@ namespace BeatSaberStreamInfo
 
         private Dictionary<string, string> config;
 
+        private bool locked = true;
+
         public Overlay()
         {
             InitializeComponent();
@@ -58,9 +60,16 @@ namespace BeatSaberStreamInfo
         private void Overlay_Load(object sender, EventArgs e)
         {
             string[] pos = File.ReadAllLines(Path.Combine(Plugin.dir, "data/overlaypos.txt"));
-            Size = new System.Drawing.Size(int.Parse(pos[0].Split(',')[0]), int.Parse(pos[0].Split(',')[1]));
-            Location = new System.Drawing.Point(int.Parse(pos[1].Split(',')[0]), int.Parse(pos[1].Split(',')[1]));
+            Size = new Size(int.Parse(pos[0].Split(',')[0]), int.Parse(pos[0].Split(',')[1]));
+            Location = new Point(int.Parse(pos[1].Split(',')[0]), int.Parse(pos[1].Split(',')[1]));
             
+            label_energy.Location = new Point(int.Parse(pos[2].Split(',')[0]), int.Parse(pos[2].Split(',')[1]));
+            panel_accuracy.Location = new Point(int.Parse(pos[3].Split(',')[0]), int.Parse(pos[3].Split(',')[1]));
+            panel_time.Location = new Point(int.Parse(pos[4].Split(',')[0]), int.Parse(pos[4].Split(',')[1]));
+            panel_multiplier.Location = new Point(int.Parse(pos[5].Split(',')[0]), int.Parse(pos[5].Split(',')[1]));
+            panel_score.Location = new Point(int.Parse(pos[6].Split(',')[0]), int.Parse(pos[6].Split(',')[1]));
+            panel_combo.Location = new Point(int.Parse(pos[7].Split(',')[0]), int.Parse(pos[7].Split(',')[1]));
+
             config = LoadConfig();
 
             ForeColor = Color.FromName(config["TextColor"]);
@@ -74,32 +83,59 @@ namespace BeatSaberStreamInfo
             label_progress.Font = new Font(MainFont, 20);
 
             label_combo.Font = new Font(MainFont, 50);
-            label_combotext.Font = new Font(MainFont, 25);
+            label_combotext.Font = new Font(MainFont, 15);
             label_notes.Font = new Font(MainFont, 20);
 
             label_timetext.Font = new Font(MainFont, 15);
             label_accuracy.Font = new Font(MainFont, 15);
+            label_scoretext.Font = new Font(MainFont, 15);
+            label_multitext.Font = new Font(MainFont, 15);
 
             label_energy.Font = new Font(MainFont, 18);
-            
-            Text = "Overlay (" + Size.Width + "x" + Size.Height + ")";
+
+            Text = "Overlay (" + Size.Width + "x" + Size.Height + ") (Locked: " + locked + ")";
         }
         private void Overlay_FormClosing(object sender, FormClosingEventArgs e)
         {
-            string[] lines = { Size.Width + "," + Size.Height, Location.X + "," + Location.Y };
+            string[] lines =
+            {
+                Size.Width + "," + Size.Height,
+                Location.X + "," + Location.Y,
+                label_energy.Location.X + "," + label_energy.Location.Y,
+                panel_accuracy.Location.X + "," + panel_accuracy.Location.Y,
+                panel_time.Location.X + "," + panel_time.Location.Y,
+                panel_multiplier.Location.X + "," + panel_multiplier.Location.Y,
+                panel_score.Location.X + "," + panel_score.Location.Y,
+                panel_combo.Location.X + "," + panel_combo.Location.Y
+            };
             File.WriteAllLines(Path.Combine(Plugin.dir, "data/overlaypos.txt"), lines);
         }
         private void Overlay_ResizeEnd(object sender, EventArgs e)
         {
-            Text = "Overlay (" + Size.Width + "x" + Size.Height + ")";
+            Text = "Overlay (" + Size.Width + "x" + Size.Height + ") (Locked: " + locked + ")";
             Refresh();
         }
         private void Overlay_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Oemtilde)
+            if (e.KeyCode == Keys.R)
             {
+                config = LoadConfig();
+
+                ForeColor = Color.FromName(config["TextColor"]);
+                BackColor = Color.FromName(config["BackgroundColor"]);
+
+                if (config["UseBackgroundImage"].ToLower() == "true" && File.Exists(Path.Combine(Plugin.dir, "image.png")))
+                    BackgroundImage = Image.FromFile(Path.Combine(Plugin.dir, "image.png"));
+                else
+                    BackgroundImage = null;
                 Refresh();
             }   
+            else if (e.KeyCode == Keys.L)
+            {
+                locked = !locked;
+
+                Text = "Overlay (" + Size.Width + "x" + Size.Height + ") (Locked: " + locked + ")";
+            }
         }
 
         public void ShutDown()
@@ -109,54 +145,151 @@ namespace BeatSaberStreamInfo
         public void UpdateText(string multiplier, string score, string progress, string combo, string notes, string energy)
         {
             int percent = Convert.ToInt32(energy);
-            string bar = "";
-            int count = Convert.ToInt32(percent) / 2;
-            for (int i = 0; i < count; i++)
-                bar += "█";
-            for (int i = 0; i < 50 - count; i++)
-                bar += "░";
+            energy = "HP  (" + percent + "%)  ";
+            if (percent == -1)
+                energy = "BAILED OUT";
+            else if (percent == -2)
+                energy = "FAILED";
+            else if (percent == -3)
+                energy = "NO FAIL";
+            else
+            {
+                int count = Convert.ToInt32(percent) / 2;
+                for (int i = 0; i < count; i++)
+                    energy += "█";
+                for (int i = 0; i < 50 - count; i++)
+                    energy += "░";
+            }
 
             label_multiplier.Text = multiplier + "x";
             label_score.Text = score;
             label_progress.Text = progress;
             label_combo.Text = combo;
             label_notes.Text = notes;
-            label_energy.Text = "HP  " + bar + "  (" + percent + "%)";
+            label_energy.Text = energy;
         }
 
-        private void label_multiplier_Click(object sender, EventArgs e)
+        
+        Point p_multiplier = new Point(0,0);
+        Point p_combo = new Point(0, 0);
+        Point p_score = new Point(0, 0);
+        Point p_accuracy = new Point(0, 0);
+        Point p_time = new Point(0, 0);
+        Point p_energy = new Point(0, 0);
+        
+        private void panel_multiplier_MouseDown(object sender, MouseEventArgs e)
         {
-
+            if (!locked)
+            {
+                p_multiplier.X = e.X;
+                p_multiplier.Y = e.Y;
+                panel_multiplier.BorderStyle = BorderStyle.FixedSingle;
+            }
+        }
+        private void panel_multiplier_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!locked)
+            {
+                panel_multiplier.Location = new Point(e.X - p_multiplier.X + panel_multiplier.Location.X, e.Y - p_multiplier.Y + panel_multiplier.Location.Y);
+                p_multiplier = new Point(0, 0);
+                panel_multiplier.BorderStyle = BorderStyle.None;
+            }
+                
         }
 
-        private void label_energy_Click(object sender, EventArgs e)
+        private void panel_combo_MouseDown(object sender, MouseEventArgs e)
         {
-
+            if (!locked)
+            {
+                p_combo.X = e.X;
+                p_combo.Y = e.Y;
+                panel_combo.BorderStyle = BorderStyle.FixedSingle;
+            }
+        }
+        private void panel_combo_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!locked)
+            {
+                panel_combo.Location = new Point(e.X - p_combo.X + panel_combo.Location.X, e.Y - p_combo.Y + panel_combo.Location.Y);
+                p_combo = new Point(0, 0);
+                panel_combo.BorderStyle = BorderStyle.None;
+            }
         }
 
-        private void label_notes_Click(object sender, EventArgs e)
+        private void panel_score_MouseDown(object sender, MouseEventArgs e)
         {
-
+            if (!locked)
+            {
+                p_score.X = e.X;
+                p_score.Y = e.Y;
+                panel_score.BorderStyle = BorderStyle.FixedSingle;
+            }
+        }
+        private void panel_score_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!locked)
+            {
+                panel_score.Location = new Point(e.X - p_score.X + panel_score.Location.X, e.Y - p_score.Y + panel_score.Location.Y);
+                p_score = new Point(0, 0);
+                panel_score.BorderStyle = BorderStyle.None;
+            }
+        }
+        
+        private void panel_accuracy_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (!locked)
+            {
+                p_accuracy.X = e.X;
+                p_accuracy.Y = e.Y;
+                panel_accuracy.BorderStyle = BorderStyle.FixedSingle;
+            }
+        }
+        private void panel_accuracy_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!locked)
+            {
+                panel_accuracy.Location = new Point(e.X - p_accuracy.X + panel_accuracy.Location.X, e.Y - p_accuracy.Y + panel_accuracy.Location.Y);
+                p_accuracy = new Point(0, 0);
+                panel_accuracy.BorderStyle = BorderStyle.None;
+            }
         }
 
-        private void label_progress_Click(object sender, EventArgs e)
+        private void panel_time_MouseDown(object sender, MouseEventArgs e)
         {
-
+            if (!locked)
+            {
+                p_time.X = e.X;
+                p_time.Y = e.Y;
+                panel_time.BorderStyle = BorderStyle.FixedSingle;
+            }
+        }
+        private void panel_time_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!locked)
+            {
+                panel_time.Location = new Point(e.X - p_time.X + panel_time.Location.X, e.Y - p_time.Y + panel_time.Location.Y);
+                p_time = new Point(0, 0);
+                panel_time.BorderStyle = BorderStyle.None;
+            }
         }
 
-        private void label_combotext_Click(object sender, EventArgs e)
+        private void label_energy_MouseDown(object sender, MouseEventArgs e)
         {
-
+            if (!locked)
+            {
+                p_energy.X = e.X;
+                p_energy.Y = e.Y;
+                label_energy.BorderStyle = BorderStyle.FixedSingle;
+            }
         }
-
-        private void label_combo_Click(object sender, EventArgs e)
+        private void label_energy_MouseUp(object sender, MouseEventArgs e)
         {
-
-        }
-
-        private void label_score_Click(object sender, EventArgs e)
-        {
-
+            if (!locked)
+            {
+                label_energy.Location = new Point(e.X - p_energy.X + label_energy.Location.X, e.Y - p_energy.Y + label_energy.Location.Y);
+                p_energy = new Point(0, 0);
+                label_energy.BorderStyle = BorderStyle.None;
+            }
         }
     }
 }
