@@ -59,18 +59,12 @@ namespace BeatSaberStreamInfo
                 Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "UserData"));
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
-            if (!Directory.Exists(Path.Combine(dir, "data")))
-                Directory.CreateDirectory(Path.Combine(dir, "data"));
 
-            foreach (string s in new[] { "SongName", "Config", "OverlayConfig", "data/overlaypos" })
+            foreach (string s in new[] { "SongName", "overlaydata" })
                 if (!File.Exists(Path.Combine(dir, s + ".txt")))
                 {
                     Console.WriteLine("[StreamInfo] " + s + ".txt not found. Creating file...");
-                    if (s == "Config")
-                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "OverlayEnabled=True");
-                    else if (s == "OverlayConfig")
-                        File.WriteAllText(Path.Combine(dir, s + ".txt"), "TextColor=White" + Environment.NewLine + "BackgroundColor=Black" + Environment.NewLine + "UseBackgroundImage=False" + Environment.NewLine + "RefreshRate=100");
-                    else if (s == "data/overlaypos")
+                    if (s == "overlaydata")
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), 
                             "567,288" + Environment.NewLine +
                             "0,0" + Environment.NewLine +
@@ -83,36 +77,20 @@ namespace BeatSaberStreamInfo
                     else
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
                 }
-            
-            foreach (string l in File.ReadAllLines(Path.Combine(dir, "Config.txt")))
+
+            if (ModPrefs.GetBool("StreamInfo", "OverlayEnabled", true, true))
             {
-                if (l.ToLower().StartsWith("overlayenabled=true"))
-                {
-                    Console.WriteLine("[StreamInfo] Launching overlay...");
-                    overlay = new Overlay();
-                    overlay.FormClosed += Overlay_FormClosed;
-                    Action overlayjob = delegate { System.Windows.Forms.Application.Run(overlay); };
-                    OverlayTask = new HMTask(overlayjob);
-                    OverlayTask.Run();
-                    overlay.Refresh();
-                    overlayRefreshRate = 100;
-                    foreach (string line in File.ReadAllLines(Path.Combine(dir, "OverlayConfig.txt")))
-                    {
-                        if (line.StartsWith("RefreshRate=") && line.Length > 12)
-                        {
-                            if (int.TryParse(line.Substring(12), out int result))
-                            {
-                                if (result < 1)
-                                    result = 1;
-
-                                overlayRefreshRate = result; 
-                            }
-                        }
-                    }
-
-                    Console.WriteLine("[StreamInfo] Overlay started.");
-                    overlayEnabled = true;
-                }
+                Console.WriteLine("[StreamInfo] Launching overlay...");
+                overlay = new Overlay();
+                overlay.FormClosed += Overlay_FormClosed;
+                Action overlayjob = delegate { System.Windows.Forms.Application.Run(overlay); };
+                OverlayTask = new HMTask(overlayjob);
+                OverlayTask.Run();
+                overlay.Refresh();
+                overlayRefreshRate = ModPrefs.GetInt("StreamInfo", "RefreshRate", 100, true);
+                
+                Console.WriteLine("[StreamInfo] Overlay started.");
+                overlayEnabled = true;
             }
         }
         private void SceneManagerOnActiveSceneChanged(Scene arg0, Scene arg1)

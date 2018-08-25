@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IllusionPlugin;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -21,8 +22,6 @@ namespace BeatSaberStreamInfo
         private PrivateFontCollection fonts = new PrivateFontCollection();
         FontFamily MainFont;
 
-        private Dictionary<string, string> config;
-
         private bool locked = true;
 
         public Overlay()
@@ -39,27 +38,10 @@ namespace BeatSaberStreamInfo
 
             MainFont = fonts.Families[0];
         }
-
-        private Dictionary<string, string> LoadConfig()
-        {
-            var c = new Dictionary<string, string>();
-
-            List<string> ValidSettings = new List<string> { "BackgroundColor", "TextColor", "UseBackgroundImage" };
-            string[] lines = File.ReadAllLines(Path.Combine(Plugin.dir, "OverlayConfig.txt"));
-            foreach (string setting in ValidSettings)
-            {
-                if (lines.Any(l => l.StartsWith(setting + "=") && l.Length > setting.Length + 1))
-                    c.Add(setting, lines.First(l => l.StartsWith(setting + "=")).Substring(setting.Length + 1));
-                else
-                    c.Add(setting, "");
-            }
-
-            return c;
-        }
         
         private void Overlay_Load(object sender, EventArgs e)
         {
-            string[] pos = File.ReadAllLines(Path.Combine(Plugin.dir, "data/overlaypos.txt"));
+            string[] pos = File.ReadAllLines(Path.Combine(Plugin.dir, "overlaydata.txt"));
             Size = new Size(int.Parse(pos[0].Split(',')[0]), int.Parse(pos[0].Split(',')[1]));
             Location = new Point(int.Parse(pos[1].Split(',')[0]), int.Parse(pos[1].Split(',')[1]));
             
@@ -70,12 +52,10 @@ namespace BeatSaberStreamInfo
             panel_score.Location = new Point(int.Parse(pos[6].Split(',')[0]), int.Parse(pos[6].Split(',')[1]));
             panel_combo.Location = new Point(int.Parse(pos[7].Split(',')[0]), int.Parse(pos[7].Split(',')[1]));
 
-            config = LoadConfig();
+            ForeColor = Color.FromName(ModPrefs.GetString("StreamInfo", "TextColor", "White", true));
+            BackColor = Color.FromName(ModPrefs.GetString("StreamInfo", "BackgroundColor", "Black", true));
 
-            ForeColor = Color.FromName(config["TextColor"]);
-            BackColor = Color.FromName(config["BackgroundColor"]);
-
-            if (config["UseBackgroundImage"].ToLower() == "true" && File.Exists(Path.Combine(Plugin.dir, "image.png")))
+            if (ModPrefs.GetBool("StreamInfo", "UseBackgroundImage", false, true) && File.Exists(Path.Combine(Plugin.dir, "image.png")))
                 BackgroundImage = Image.FromFile(Path.Combine(Plugin.dir, "image.png"));
             
             label_multiplier.Font = new Font(MainFont, 50);
@@ -108,7 +88,7 @@ namespace BeatSaberStreamInfo
                 panel_score.Location.X + "," + panel_score.Location.Y,
                 panel_combo.Location.X + "," + panel_combo.Location.Y
             };
-            File.WriteAllLines(Path.Combine(Plugin.dir, "data/overlaypos.txt"), lines);
+            File.WriteAllLines(Path.Combine(Plugin.dir, "overlaydata.txt"), lines);
         }
         private void Overlay_ResizeEnd(object sender, EventArgs e)
         {
@@ -119,12 +99,10 @@ namespace BeatSaberStreamInfo
         {
             if (e.KeyCode == Keys.R)
             {
-                config = LoadConfig();
+                ForeColor = Color.FromName(ModPrefs.GetString("StreamInfo", "TextColor", "White", true));
+                BackColor = Color.FromName(ModPrefs.GetString("StreamInfo", "BackgroundColor", "Black", true));
 
-                ForeColor = Color.FromName(config["TextColor"]);
-                BackColor = Color.FromName(config["BackgroundColor"]);
-
-                if (config["UseBackgroundImage"].ToLower() == "true" && File.Exists(Path.Combine(Plugin.dir, "image.png")))
+                if (ModPrefs.GetBool("StreamInfo", "UseBackgroundImage", false, true) && File.Exists(Path.Combine(Plugin.dir, "image.png")))
                     BackgroundImage = Image.FromFile(Path.Combine(Plugin.dir, "image.png"));
                 else
                     BackgroundImage = null;
@@ -168,7 +146,6 @@ namespace BeatSaberStreamInfo
             label_notes.Text = notes;
             label_energy.Text = energy;
         }
-
         
         Point p_multiplier = new Point(0,0);
         Point p_combo = new Point(0, 0);
