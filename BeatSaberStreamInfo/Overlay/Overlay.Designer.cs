@@ -297,11 +297,11 @@
             this.BackColor = System.Drawing.Color.Black;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(550, 250);
+            this.Controls.Add(this.panel_score);
             this.Controls.Add(this.label_energy);
             this.Controls.Add(this.panel_accuracy);
             this.Controls.Add(this.panel_time);
             this.Controls.Add(this.panel_multiplier);
-            this.Controls.Add(this.panel_score);
             this.Controls.Add(this.panel_combo);
             this.ForeColor = System.Drawing.Color.White;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.SceneManagement;
 using IllusionPlugin;
 using IllusionInjector;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace BeatSaberStreamInfo
 {
@@ -17,7 +16,6 @@ namespace BeatSaberStreamInfo
         public string Version => "1.0";
 
         private AudioTimeSyncController ats;
-        private GameEnergyCounter energy;
         public static readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
         private bool InSong;
         private bool EnergyReached0;
@@ -163,7 +161,6 @@ namespace BeatSaberStreamInfo
             InSong = false;
             writer.Cancel();
             ats = null;
-            energy = null;
             File.WriteAllText(Path.Combine(dir, "SongName.txt"), "");
 
             Console.WriteLine("[StreamInfo] Done! Ready for next song.");
@@ -226,11 +223,11 @@ namespace BeatSaberStreamInfo
                 writer = new HMTask(job);
                 writer.Run();
                 highestCombo = 0;
-                Thread.Sleep(500);
+                Task.Delay(100);
 
                 Console.WriteLine("[StreamInfo] Finding objects...");
                 ats = UnityEngine.Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
-                energy = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
+                var energy = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
                 var score = UnityEngine.Resources.FindObjectsOfTypeAll<ScoreController>().FirstOrDefault();
                 var setupData = UnityEngine.Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
                 string progress = "";
