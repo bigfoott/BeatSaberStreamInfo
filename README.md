@@ -1,3 +1,5 @@
+![title](https://bigft.io/u/i/3GMC3.png)
+
 Output BeatSaber game data to an external overlay to be used on stream.
 
 ## Setup
