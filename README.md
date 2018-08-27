@@ -18,6 +18,8 @@ Add the .dll to the Plugins folder of your game and launch the game. Default set
 
 **`UseBackgroundImage`** - (0 or 1) To set the image, put "image.png" in `UserData/StreamInfo`.
 
+**`AlignX`** - For each section (except health). Can be `left`, `right`, or `center`.
+
 ## Usage
 
 Press **`L`** to toggle locking the elements in the overlay. Click and drag to move them around.
