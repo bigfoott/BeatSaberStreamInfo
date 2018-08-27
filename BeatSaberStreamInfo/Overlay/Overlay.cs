@@ -67,6 +67,8 @@ namespace BeatSaberStreamInfo
 
             label_energy.Font = new Font(MainFont, 18);
 
+            UpdateAlign();
+
             Text = "Overlay (" + Size.Width + "x" + Size.Height + ") (Locked: " + locked + ")";
         }
         private void Overlay_FormClosing(object sender, FormClosingEventArgs e)
@@ -100,6 +102,8 @@ namespace BeatSaberStreamInfo
                     BackgroundImage = Image.FromFile(Path.Combine(Plugin.dir, "image.png"));
                 else
                     BackgroundImage = null;
+
+                UpdateAlign();
                 Refresh();
             }   
             else if (e.KeyCode == Keys.L)
@@ -140,7 +144,59 @@ namespace BeatSaberStreamInfo
             label_notes.Text = notes;
             label_energy.Text = energy;
         }
-        
+        private void UpdateAlign()
+        {
+            string multiAlign = ModPrefs.GetString("StreamInfo", "AlignMultiplier", "Center", true);
+            string comboAlign = ModPrefs.GetString("StreamInfo", "AlignCombo", "Center", true);
+            string scoreAlign = ModPrefs.GetString("StreamInfo", "AlignScore", "Center", true);
+            string timeAlign = ModPrefs.GetString("StreamInfo", "AlignTime", "Center", true);
+            string accuracyAlign = ModPrefs.GetString("StreamInfo", "AlignAccuracy", "Center", true);
+
+            ContentAlignment multi = ContentAlignment.MiddleCenter;
+            ContentAlignment combo = ContentAlignment.MiddleCenter;
+            ContentAlignment score = ContentAlignment.MiddleCenter;
+            ContentAlignment time = ContentAlignment.MiddleCenter;
+            ContentAlignment accuracy = ContentAlignment.MiddleCenter;
+
+            if (multiAlign.ToLower() == "left")
+                multi = ContentAlignment.MiddleLeft;
+            else if (multiAlign.ToLower() == "right")
+                multi = ContentAlignment.MiddleRight;
+
+            if (scoreAlign.ToLower() == "left")
+                score = ContentAlignment.MiddleLeft;
+            else if (scoreAlign.ToLower() == "right")
+                score = ContentAlignment.MiddleRight;
+
+            if (comboAlign.ToLower() == "left")
+                combo = ContentAlignment.MiddleLeft;
+            else if (comboAlign.ToLower() == "right")
+                combo = ContentAlignment.MiddleRight;
+
+            if (timeAlign.ToLower() == "left")
+                time = ContentAlignment.MiddleLeft;
+            else if (timeAlign.ToLower() == "right")
+                time = ContentAlignment.MiddleRight;
+
+            if (accuracyAlign.ToLower() == "left")
+                accuracy = ContentAlignment.MiddleLeft;
+            else if (accuracyAlign.ToLower() == "right")
+                accuracy = ContentAlignment.MiddleRight;
+
+            label_multiplier.TextAlign = multi;
+            label_score.TextAlign = score;
+            label_progress.TextAlign = time;
+
+            label_combo.TextAlign = combo;
+            label_combotext.TextAlign = combo;
+            label_notes.TextAlign = accuracy;
+
+            label_timetext.TextAlign = time;
+            label_accuracy.TextAlign = accuracy;
+            label_scoretext.TextAlign = score;
+            label_multitext.TextAlign = multi;
+        }
+
         Point p_multiplier = new Point(0,0);
         Point p_combo = new Point(0, 0);
         Point p_score = new Point(0, 0);

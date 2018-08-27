@@ -24,9 +24,11 @@ namespace BeatSaberStreamInfo
         private SongInfo info;
         Action job;
         Action StartJob;
+        Action EndJob;
         HMTask writer;
         HMTask OverlayTask;
         HMTask StartTask;
+        HMTask EndTask;
 
         Overlay overlay;
         
@@ -97,10 +99,8 @@ namespace BeatSaberStreamInfo
             {
                 if (arg1.name == "Menu" && InSong)
                 {
-                    Console.WriteLine("[StreamInfo] Exited song scene. Ready to reset.");
-                    var resultsView = UnityEngine.Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
-                    if (resultsView != null)
-                        resultsView.continueButtonPressedEvent += OnContinueClick;
+                    EndTask = new HMTask(EndJob);
+                    EndTask.Run();
                 }
                 else if (arg1.name == "DefaultEnvironment" || arg1.name == "BigMirrorEnvironment" || arg1.name == "TriangleEnvironment" || arg1.name == "NiceEnvironment")
                 {
@@ -284,8 +284,23 @@ namespace BeatSaberStreamInfo
                 }
             };
             StartTask = new HMTask(StartJob);
-        }
 
+            EndJob = delegate
+            {
+                Task.Delay(250);
+                Console.WriteLine("[StreamInfo] Exited song scene. Ready to reset.");
+                var resultsView = UnityEngine.Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
+                while (resultsView == null)
+                {
+                    UnityEngine.Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
+                    Task.Delay(100);
+                }
+
+                resultsView.continueButtonPressedEvent += OnContinueClick;
+            };
+            EndTask = new HMTask(EndJob);
+        }
+        
         public void OnApplicationQuit()
         {
             if (overlayEnabled && overlay != null)
