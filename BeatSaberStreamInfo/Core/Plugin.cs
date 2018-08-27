@@ -162,12 +162,8 @@ namespace BeatSaberStreamInfo
                     info.energy = -2;
             }
         }
+
         private void OnContinueClick(ResultsViewController obj)
-        {
-            AfterSongReset();
-        }
-        
-        private void AfterSongReset()
         {
             Console.WriteLine("[StreamInfo] Continue pressed. Resetting...");
 
@@ -184,7 +180,7 @@ namespace BeatSaberStreamInfo
                             0,
                             "0:00 / 0:00 (0%)",
                             info.GetVal("combo"),
-                            info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)",
+                            info.GetVal("notes_hit") + "/" + info.GetVal("notes_total"),
                             info.GetVal("energy"));
         }
         
@@ -298,7 +294,7 @@ namespace BeatSaberStreamInfo
 
                 if (noFail)
                     info.energy = -3;
-
+                
                 if (overlayEnabled)
                 {
                     Console.WriteLine("[StreamInfo] Updating overlay...");
@@ -307,7 +303,7 @@ namespace BeatSaberStreamInfo
                                 ScoreController.MaxScoreForNumberOfNotes(info.notes_total),
                                 progress,
                                 info.GetVal("combo"),
-                                info.GetVal("notes_hit") + "/" + info.GetVal("notes_total") + " (" + info.GetVal("percent") + "%)",
+                                info.GetVal("notes_hit") + "/" + info.GetVal("notes_total"),
                                 info.GetVal("energy"));
                 }
             };
@@ -318,15 +314,13 @@ namespace BeatSaberStreamInfo
                 Task.Delay(250);
                 Console.WriteLine("[StreamInfo] Exited song scene. Ready to reset.");
                 var resultsView = UnityEngine.Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
-                for (int i = 0; i < 10 && resultsView == null; i++)
+                while (resultsView == null)
                 {
-                    resultsView = UnityEngine.Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
                     Task.Delay(100);
+                    UnityEngine.Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
                 }
-                if (resultsView != null)
-                    resultsView.continueButtonPressedEvent += OnContinueClick;
-                else
-                    AfterSongReset();
+
+                resultsView.continueButtonPressedEvent += OnContinueClick;
             };
             EndTask = new HMTask(EndJob);
         }
