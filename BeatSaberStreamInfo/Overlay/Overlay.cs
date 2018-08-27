@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Text;
 using System.IO;
 using System.Windows.Forms;
+using UnityEngine;
 
 namespace BeatSaberStreamInfo
 {
@@ -46,8 +47,8 @@ namespace BeatSaberStreamInfo
             panel_score.Location = new Point(int.Parse(pos[6].Split(',')[0]), int.Parse(pos[6].Split(',')[1]));
             panel_combo.Location = new Point(int.Parse(pos[7].Split(',')[0]), int.Parse(pos[7].Split(',')[1]));
 
-            ForeColor = Color.FromName(ModPrefs.GetString("StreamInfo", "TextColor", "White", true));
-            BackColor = Color.FromName(ModPrefs.GetString("StreamInfo", "BackgroundColor", "Black", true));
+            ForeColor = System.Drawing.Color.FromName(ModPrefs.GetString("StreamInfo", "TextColor", "White", true));
+            BackColor = System.Drawing.Color.FromName(ModPrefs.GetString("StreamInfo", "BackgroundColor", "Black", true));
 
             if (ModPrefs.GetBool("StreamInfo", "UseBackgroundImage", false, true) && File.Exists(Path.Combine(Plugin.dir, "image.png")))
                 BackgroundImage = Image.FromFile(Path.Combine(Plugin.dir, "image.png"));
@@ -95,8 +96,8 @@ namespace BeatSaberStreamInfo
         {
             if (e.KeyCode == Keys.R)
             {
-                ForeColor = Color.FromName(ModPrefs.GetString("StreamInfo", "TextColor", "White", true));
-                BackColor = Color.FromName(ModPrefs.GetString("StreamInfo", "BackgroundColor", "Black", true));
+                ForeColor = System.Drawing.Color.FromName(ModPrefs.GetString("StreamInfo", "TextColor", "White", true));
+                BackColor = System.Drawing.Color.FromName(ModPrefs.GetString("StreamInfo", "BackgroundColor", "Black", true));
 
                 if (ModPrefs.GetBool("StreamInfo", "UseBackgroundImage", false, true) && File.Exists(Path.Combine(Plugin.dir, "image.png")))
                     BackgroundImage = Image.FromFile(Path.Combine(Plugin.dir, "image.png"));
@@ -118,7 +119,7 @@ namespace BeatSaberStreamInfo
         {
             Close();
         }
-        public void UpdateText(string multiplier, string score, string progress, string combo, string notes, string energy)
+        public void UpdateText(string multiplier, string score, int maxscore, string progress, string combo, string notes, string energy)
         {
             int percent = Convert.ToInt32(energy);
             energy = "HP  (" + percent + "%)  ";
@@ -136,12 +137,19 @@ namespace BeatSaberStreamInfo
                 for (int i = 0; i < 50 - count; i++)
                     energy += "░";
             }
+            float acc = 0f;
+
+            if (maxscore != 0)
+                acc = (float)Convert.ToInt32(score) / maxscore;
+            string perc = (Mathf.Clamp(acc, 0.0f, 1.0f) * 100.0f).ToString("F1") + "%";
+            if (maxscore == 0)
+                perc = "0%";
 
             label_multiplier.Text = multiplier + "x";
             label_score.Text = score;
             label_progress.Text = progress;
             label_combo.Text = combo;
-            label_notes.Text = notes;
+            label_notes.Text = notes + " - " + GetRank(Convert.ToInt32(score), acc, maxscore) + " (" + perc + ")";
             label_energy.Text = energy;
         }
         private void UpdateAlign()
@@ -195,6 +203,39 @@ namespace BeatSaberStreamInfo
             label_accuracy.TextAlign = accuracy;
             label_scoretext.TextAlign = score;
             label_multitext.TextAlign = multi;
+        }
+        
+        private string GetRank(int score, float acc, int maxscore)
+        {
+            if (score >= maxscore)
+            {
+                return "SSS";
+            }
+            if (acc > 0.9f)
+            {
+                return "SS";
+            }
+            if (acc > 0.8f)
+            {
+                return "S";
+            }
+            if (acc > 0.65f)
+            {
+                return "A";
+            }
+            if (acc > 0.5f)
+            {
+                return "B";
+            }
+            if (acc > 0.35f)
+            {
+                return "C";
+            }
+            if (acc > 0.2f)
+            {
+                return "D";
+            }
+            return "E";
         }
 
         Point p_multiplier = new Point(0,0);
