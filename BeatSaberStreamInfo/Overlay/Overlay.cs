@@ -39,20 +39,14 @@ namespace BeatSaberStreamInfo
             string[] pos = File.ReadAllLines(Path.Combine(Plugin.dir, "overlaydata.txt"));
             Size = new Size(int.Parse(pos[0].Split(',')[0]), int.Parse(pos[0].Split(',')[1]));
             Location = new Point(int.Parse(pos[1].Split(',')[0]), int.Parse(pos[1].Split(',')[1]));
-            
-            label_energy.Location = new Point(int.Parse(pos[2].Split(',')[0]), int.Parse(pos[2].Split(',')[1]));
+
+            panel_energy.Location = new Point(int.Parse(pos[2].Split(',')[0]), int.Parse(pos[2].Split(',')[1]));
             panel_accuracy.Location = new Point(int.Parse(pos[3].Split(',')[0]), int.Parse(pos[3].Split(',')[1]));
             panel_time.Location = new Point(int.Parse(pos[4].Split(',')[0]), int.Parse(pos[4].Split(',')[1]));
             panel_multiplier.Location = new Point(int.Parse(pos[5].Split(',')[0]), int.Parse(pos[5].Split(',')[1]));
             panel_score.Location = new Point(int.Parse(pos[6].Split(',')[0]), int.Parse(pos[6].Split(',')[1]));
             panel_combo.Location = new Point(int.Parse(pos[7].Split(',')[0]), int.Parse(pos[7].Split(',')[1]));
 
-            ForeColor = System.Drawing.Color.FromName(ModPrefs.GetString("StreamInfo", "TextColor", "White", true));
-            BackColor = System.Drawing.Color.FromName(ModPrefs.GetString("StreamInfo", "BackgroundColor", "Black", true));
-
-            if (ModPrefs.GetBool("StreamInfo", "UseBackgroundImage", false, true) && File.Exists(Path.Combine(Plugin.dir, "image.png")))
-                BackgroundImage = Image.FromFile(Path.Combine(Plugin.dir, "image.png"));
-            
             label_multiplier.Font = new Font(MainFont, 50);
             label_score.Font = new Font(MainFont, 30);
             label_progress.Font = new Font(MainFont, 20);
@@ -68,9 +62,9 @@ namespace BeatSaberStreamInfo
 
             label_energy.Font = new Font(MainFont, 18);
 
-            UpdateAlign();
-
             Text = "Overlay (" + Size.Width + "x" + Size.Height + ") (Locked: " + locked + ")";
+
+            RunAction("refresh");
         }
         private void Overlay_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -78,7 +72,7 @@ namespace BeatSaberStreamInfo
             {
                 Size.Width + "," + Size.Height,
                 Location.X + "," + Location.Y,
-                label_energy.Location.X + "," + label_energy.Location.Y,
+                panel_energy.Location.X + "," + panel_energy.Location.Y,
                 panel_accuracy.Location.X + "," + panel_accuracy.Location.Y,
                 panel_time.Location.X + "," + panel_time.Location.Y,
                 panel_multiplier.Location.X + "," + panel_multiplier.Location.Y,
@@ -95,26 +89,23 @@ namespace BeatSaberStreamInfo
         private void Overlay_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.R)
-            {
-                ForeColor = System.Drawing.Color.FromName(ModPrefs.GetString("StreamInfo", "TextColor", "White", true));
-                BackColor = System.Drawing.Color.FromName(ModPrefs.GetString("StreamInfo", "BackgroundColor", "Black", true));
-
-                if (ModPrefs.GetBool("StreamInfo", "UseBackgroundImage", false, true) && File.Exists(Path.Combine(Plugin.dir, "image.png")))
-                    BackgroundImage = Image.FromFile(Path.Combine(Plugin.dir, "image.png"));
-                else
-                    BackgroundImage = null;
-
-                UpdateAlign();
-                Refresh();
-            }   
+                RunAction("refresh");
             else if (e.KeyCode == Keys.L)
+                RunAction("lock");
+        }
+        private void Overlay_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
             {
-                locked = !locked;
+                System.Windows.Forms.ContextMenu m = new System.Windows.Forms.ContextMenu();
+                m.MenuItems.Add(new MenuItem("Toggle Lock (L)", new EventHandler(MenuLock)));
+                m.MenuItems.Add(new MenuItem("Refresh (R)", new EventHandler(MenuRefresh)));
+                m.MenuItems.Add(new MenuItem("Reset Elements", new EventHandler(MenuReset)));
 
-                Text = "Overlay (" + Size.Width + "x" + Size.Height + ") (Locked: " + locked + ")";
+                m.Show(this, new Point(e.X, e.Y));
             }
         }
-
+        
         public void ShutDown()
         {
             Close();
@@ -204,7 +195,49 @@ namespace BeatSaberStreamInfo
             label_scoretext.TextAlign = score;
             label_multitext.TextAlign = multi;
         }
-        
+        private void RunAction(string act)
+        {
+            if (act == "lock")
+            {
+                locked = !locked;
+
+                Text = "Overlay (" + Size.Width + "x" + Size.Height + ") (Locked: " + locked + ")";
+            }
+            else if (act == "refresh")
+            {
+                ForeColor = System.Drawing.Color.FromName(ModPrefs.GetString("StreamInfo", "TextColor", "White", true));
+                BackColor = System.Drawing.Color.FromName(ModPrefs.GetString("StreamInfo", "BackgroundColor", "Black", true));
+
+                if (ModPrefs.GetBool("StreamInfo", "UseBackgroundImage", false, true) && File.Exists(Path.Combine(Plugin.dir, "image.png")))
+                    BackgroundImage = Image.FromFile(Path.Combine(Plugin.dir, "image.png"));
+                else
+                    BackgroundImage = null;
+
+                UpdateAlign();
+                Refresh();
+            }
+        }
+        private void MenuLock(object sender, EventArgs e)
+        {
+            RunAction("lock");
+        }
+        private void MenuRefresh(object sender, EventArgs e)
+        {
+            RunAction("refresh");
+        }
+        private void MenuReset(object sender, EventArgs e)
+        {
+            string[] pos = { "567,288", "0,0", "75,198", "307,134", "16,132", "87,19", "170,83", "303,19" };
+            File.WriteAllLines(Path.Combine(Plugin.dir, "overlaydata.txt"), pos);
+
+            panel_energy.Location = new Point(int.Parse(pos[2].Split(',')[0]), int.Parse(pos[2].Split(',')[1]));
+            panel_accuracy.Location = new Point(int.Parse(pos[3].Split(',')[0]), int.Parse(pos[3].Split(',')[1]));
+            panel_time.Location = new Point(int.Parse(pos[4].Split(',')[0]), int.Parse(pos[4].Split(',')[1]));
+            panel_multiplier.Location = new Point(int.Parse(pos[5].Split(',')[0]), int.Parse(pos[5].Split(',')[1]));
+            panel_score.Location = new Point(int.Parse(pos[6].Split(',')[0]), int.Parse(pos[6].Split(',')[1]));
+            panel_combo.Location = new Point(int.Parse(pos[7].Split(',')[0]), int.Parse(pos[7].Split(',')[1]));
+        }
+
         private string GetRank(int score, float acc, int maxscore)
         {
             if (score >= maxscore)
@@ -341,22 +374,22 @@ namespace BeatSaberStreamInfo
             }
         }
 
-        private void label_energy_MouseDown(object sender, MouseEventArgs e)
+        private void panel_energy_MouseDown(object sender, MouseEventArgs e)
         {
             if (!locked)
             {
                 p_energy.X = e.X;
                 p_energy.Y = e.Y;
-                label_energy.BorderStyle = BorderStyle.FixedSingle;
+                panel_energy.BorderStyle = BorderStyle.FixedSingle;
             }
         }
-        private void label_energy_MouseUp(object sender, MouseEventArgs e)
+        private void panel_energy_MouseUp(object sender, MouseEventArgs e)
         {
             if (!locked)
             {
-                label_energy.Location = new Point(e.X - p_energy.X + label_energy.Location.X, e.Y - p_energy.Y + label_energy.Location.Y);
+                panel_energy.Location = new Point(e.X - p_energy.X + panel_energy.Location.X, e.Y - p_energy.Y + panel_energy.Location.Y);
                 p_energy = new Point(0, 0);
-                label_energy.BorderStyle = BorderStyle.None;
+                panel_energy.BorderStyle = BorderStyle.None;
             }
         }
     }

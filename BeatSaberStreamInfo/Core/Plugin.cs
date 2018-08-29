@@ -65,15 +65,7 @@ namespace BeatSaberStreamInfo
                 {
                     Console.WriteLine("[StreamInfo] " + s + ".txt not found. Creating file...");
                     if (s == "overlaydata")
-                        File.WriteAllText(Path.Combine(dir, s + ".txt"), 
-                            "567,288" + Environment.NewLine +
-                            "0,0" + Environment.NewLine +
-                            "75,198" + Environment.NewLine +
-                            "307,134" + Environment.NewLine +
-                            "16,132" + Environment.NewLine +
-                            "61,19" + Environment.NewLine +
-                            "170,83" + Environment.NewLine +
-                            "303,19" + Environment.NewLine);
+                        File.WriteAllLines(Path.Combine(dir, s + ".txt"), new[] { "567,288","0,0","75,198","307,134","16,132","87,19","170,83","303,19" });
                     else
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
                 }
@@ -83,7 +75,7 @@ namespace BeatSaberStreamInfo
                 Console.WriteLine("[StreamInfo] Launching overlay...");
                 overlay = new Overlay();
                 overlay.FormClosed += Overlay_FormClosed;
-                Action overlayjob = delegate { System.Windows.Forms.Application.Run(overlay); };
+                Action overlayjob = delegate { Application.Run(overlay); };
                 OverlayTask = new HMTask(overlayjob);
                 OverlayTask.Run();
                 overlay.Refresh();

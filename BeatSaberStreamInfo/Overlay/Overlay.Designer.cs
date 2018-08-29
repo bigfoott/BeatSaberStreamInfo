@@ -45,11 +45,13 @@
             this.panel_multiplier = new System.Windows.Forms.Panel();
             this.panel_time = new System.Windows.Forms.Panel();
             this.panel_accuracy = new System.Windows.Forms.Panel();
+            this.panel_energy = new System.Windows.Forms.Panel();
             this.panel_combo.SuspendLayout();
             this.panel_score.SuspendLayout();
             this.panel_multiplier.SuspendLayout();
             this.panel_time.SuspendLayout();
             this.panel_accuracy.SuspendLayout();
+            this.panel_energy.SuspendLayout();
             this.SuspendLayout();
             // 
             // label_energy
@@ -58,15 +60,15 @@
             this.label_energy.BackColor = System.Drawing.Color.Transparent;
             this.label_energy.Font = new System.Drawing.Font("Teko", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label_energy.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
-            this.label_energy.Location = new System.Drawing.Point(75, 198);
+            this.label_energy.Location = new System.Drawing.Point(3, 7);
             this.label_energy.Margin = new System.Windows.Forms.Padding(0);
             this.label_energy.Name = "label_energy";
             this.label_energy.Size = new System.Drawing.Size(399, 36);
-            this.label_energy.TabIndex = 13;
+            this.label_energy.TabIndex = 20;
             this.label_energy.Text = "HP  (50%)  █████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░";
             this.label_energy.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label_energy.MouseDown += new System.Windows.Forms.MouseEventHandler(this.label_energy_MouseDown);
-            this.label_energy.MouseUp += new System.Windows.Forms.MouseEventHandler(this.label_energy_MouseUp);
+            this.label_energy.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_energy_MouseDown);
+            this.label_energy.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_energy_MouseUp);
             // 
             // label_notes
             // 
@@ -290,6 +292,18 @@
             this.panel_accuracy.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_accuracy_MouseDown);
             this.panel_accuracy.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_accuracy_MouseUp);
             // 
+            // panel_energy
+            // 
+            this.panel_energy.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.panel_energy.BackColor = System.Drawing.Color.Transparent;
+            this.panel_energy.Controls.Add(this.label_energy);
+            this.panel_energy.Location = new System.Drawing.Point(78, 198);
+            this.panel_energy.Name = "panel_energy";
+            this.panel_energy.Size = new System.Drawing.Size(408, 51);
+            this.panel_energy.TabIndex = 19;
+            this.panel_energy.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_energy_MouseDown);
+            this.panel_energy.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_energy_MouseUp);
+            // 
             // Overlay
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -297,9 +311,9 @@
             this.BackColor = System.Drawing.Color.Black;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(550, 250);
+            this.Controls.Add(this.panel_energy);
             this.Controls.Add(this.panel_combo);
             this.Controls.Add(this.panel_score);
-            this.Controls.Add(this.label_energy);
             this.Controls.Add(this.panel_accuracy);
             this.Controls.Add(this.panel_time);
             this.Controls.Add(this.panel_multiplier);
@@ -312,11 +326,13 @@
             this.Load += new System.EventHandler(this.Overlay_Load);
             this.ResizeEnd += new System.EventHandler(this.Overlay_ResizeEnd);
             this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.Overlay_KeyUp);
+            this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.panel_combo.ResumeLayout(false);
             this.panel_score.ResumeLayout(false);
             this.panel_multiplier.ResumeLayout(false);
             this.panel_time.ResumeLayout(false);
             this.panel_accuracy.ResumeLayout(false);
+            this.panel_energy.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -339,5 +355,6 @@
         private System.Windows.Forms.Panel panel_multiplier;
         private System.Windows.Forms.Panel panel_time;
         private System.Windows.Forms.Label label_combotext;
+        private System.Windows.Forms.Panel panel_energy;
     }
 }
