@@ -69,7 +69,6 @@ namespace BeatSaberStreamInfo
                     else
                         File.WriteAllText(Path.Combine(dir, s + ".txt"), "");
                 }
-
             if (ModPrefs.GetBool("StreamInfo", "OverlayEnabled", true, true))
             {
                 Console.WriteLine("[StreamInfo] Launching overlay...");

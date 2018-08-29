@@ -102,7 +102,7 @@ namespace BeatSaberStreamInfo
                 m.MenuItems.Add(new MenuItem("Refresh (R)", new EventHandler(MenuRefresh)));
                 m.MenuItems.Add(new MenuItem("Reset Elements", new EventHandler(MenuReset)));
 
-                m.Show(this, new Point(e.X, e.Y));
+                m.Show((Control)sender, e.Location);
             }
         }
         

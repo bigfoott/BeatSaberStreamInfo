@@ -67,6 +67,7 @@
             this.label_energy.TabIndex = 20;
             this.label_energy.Text = "HP  (50%)  █████████████████████████░░░░░░░░░░░░░░░░░░░░░░░░░";
             this.label_energy.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_energy.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.label_energy.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_energy_MouseDown);
             this.label_energy.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_energy_MouseUp);
             // 
@@ -83,6 +84,7 @@
             this.label_notes.TabIndex = 12;
             this.label_notes.Text = "0/0 - SSS (0%)";
             this.label_notes.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_notes.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.label_notes.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_accuracy_MouseDown);
             this.label_notes.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_accuracy_MouseUp);
             // 
@@ -99,6 +101,7 @@
             this.label_progress.TabIndex = 11;
             this.label_progress.Text = "0:00/0:00 (0%)";
             this.label_progress.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_progress.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.label_progress.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_time_MouseDown);
             this.label_progress.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_time_MouseUp);
             // 
@@ -114,6 +117,7 @@
             this.label_combo.TabIndex = 9;
             this.label_combo.Text = "0";
             this.label_combo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_combo.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.label_combo.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_combo_MouseDown);
             this.label_combo.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_combo_MouseUp);
             // 
@@ -129,6 +133,7 @@
             this.label_score.TabIndex = 8;
             this.label_score.Text = "0";
             this.label_score.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_score.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.label_score.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_score_MouseDown);
             this.label_score.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_score_MouseUp);
             // 
@@ -144,6 +149,7 @@
             this.label_multiplier.TabIndex = 7;
             this.label_multiplier.Text = "8x";
             this.label_multiplier.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_multiplier.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.label_multiplier.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_multiplier_MouseDown);
             this.label_multiplier.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_multiplier_MouseUp);
             // 
@@ -160,6 +166,7 @@
             this.label_timetext.TabIndex = 14;
             this.label_timetext.Text = "TIME";
             this.label_timetext.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_timetext.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.label_timetext.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_time_MouseDown);
             this.label_timetext.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_time_MouseUp);
             // 
@@ -176,6 +183,7 @@
             this.label_accuracy.TabIndex = 15;
             this.label_accuracy.Text = "ACCURACY";
             this.label_accuracy.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_accuracy.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.label_accuracy.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_accuracy_MouseDown);
             this.label_accuracy.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_accuracy_MouseUp);
             // 
@@ -192,6 +200,7 @@
             this.label_scoretext.TabIndex = 16;
             this.label_scoretext.Text = "SCORE";
             this.label_scoretext.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_scoretext.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.label_scoretext.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_score_MouseDown);
             this.label_scoretext.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_score_MouseUp);
             // 
@@ -208,6 +217,7 @@
             this.label_multitext.TabIndex = 17;
             this.label_multitext.Text = "MULTIPLIER";
             this.label_multitext.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_multitext.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.label_multitext.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_multiplier_MouseDown);
             this.label_multitext.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_multiplier_MouseUp);
             // 
@@ -221,6 +231,7 @@
             this.panel_combo.Name = "panel_combo";
             this.panel_combo.Size = new System.Drawing.Size(234, 90);
             this.panel_combo.TabIndex = 18;
+            this.panel_combo.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.panel_combo.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_combo_MouseDown);
             this.panel_combo.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_combo_MouseUp);
             // 
@@ -237,6 +248,7 @@
             this.label_combotext.TabIndex = 18;
             this.label_combotext.Text = "COMBO";
             this.label_combotext.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label_combotext.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.label_combotext.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_combo_MouseDown);
             this.label_combotext.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_combo_MouseUp);
             // 
@@ -250,6 +262,7 @@
             this.panel_score.Name = "panel_score";
             this.panel_score.Size = new System.Drawing.Size(214, 69);
             this.panel_score.TabIndex = 19;
+            this.panel_score.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.panel_score.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_score_MouseDown);
             this.panel_score.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_score_MouseUp);
             // 
@@ -263,6 +276,7 @@
             this.panel_multiplier.Name = "panel_multiplier";
             this.panel_multiplier.Size = new System.Drawing.Size(81, 90);
             this.panel_multiplier.TabIndex = 21;
+            this.panel_multiplier.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.panel_multiplier.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_multiplier_MouseDown);
             this.panel_multiplier.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_multiplier_MouseUp);
             // 
@@ -276,6 +290,7 @@
             this.panel_time.Name = "panel_time";
             this.panel_time.Size = new System.Drawing.Size(230, 63);
             this.panel_time.TabIndex = 22;
+            this.panel_time.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.panel_time.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_time_MouseDown);
             this.panel_time.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_time_MouseUp);
             // 
@@ -289,6 +304,7 @@
             this.panel_accuracy.Name = "panel_accuracy";
             this.panel_accuracy.Size = new System.Drawing.Size(234, 58);
             this.panel_accuracy.TabIndex = 23;
+            this.panel_accuracy.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.panel_accuracy.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_accuracy_MouseDown);
             this.panel_accuracy.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_accuracy_MouseUp);
             // 
@@ -301,6 +317,7 @@
             this.panel_energy.Name = "panel_energy";
             this.panel_energy.Size = new System.Drawing.Size(408, 51);
             this.panel_energy.TabIndex = 19;
+            this.panel_energy.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Overlay_MouseClick);
             this.panel_energy.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel_energy_MouseDown);
             this.panel_energy.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel_energy_MouseUp);
             // 
