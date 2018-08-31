@@ -13,30 +13,26 @@ namespace BeatSaberStreamInfo
     public class Plugin : IPlugin
     {
         public string Name => "Beat Saber Stream Info";
-        public string Version => "1.0";
+        public string Version => "1.0.0";
 
         private AudioTimeSyncController ats;
         public static readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
+        private readonly string[] env = { "DefaultEnvironment", "BigMirrorEnvironment", "TriangleEnvironment", "NiceEnvironment" };
+
         private bool InSong;
         private bool EnergyReached0;
         private bool BailOutInstalled;
         private int overlayRefreshRate;
         private SongInfo info;
-        Action job;
         Action StartJob;
-        Action EndJob;
-        HMTask writer;
         HMTask OverlayTask;
         HMTask StartTask;
-        HMTask EndTask;
 
         Overlay overlay;
         
         string _songName;
         string _songAuthor;
         string _songSub;
-
-        int highestCombo = 0;
         
         bool overlayEnabled = false;
 
@@ -90,10 +86,15 @@ namespace BeatSaberStreamInfo
             {
                 if (arg1.name == "Menu" && InSong)
                 {
-                    EndTask = new HMTask(EndJob);
-                    EndTask.Run();
+                    Console.WriteLine("[StreamInfo] Exited song scene.");
+
+                    InSong = false;
+                    StartTask.Cancel();
+                    ats = null;
+
+                    Console.WriteLine("[StreamInfo] Ready for next song.");
                 }
-                else if (arg1.name == "DefaultEnvironment" || arg1.name == "BigMirrorEnvironment" || arg1.name == "TriangleEnvironment" || arg1.name == "NiceEnvironment")
+                else if (env.Contains(arg1.name))
                 {
                     StartTask = new HMTask(StartJob);
                     StartTask.Run();
@@ -104,8 +105,6 @@ namespace BeatSaberStreamInfo
         private void OnComboChange(int c)
         {
             info.combo = c;
-            if (c > highestCombo)
-                highestCombo = c;
         }
         private void OnMultiplierChange(int c, float f)
         {
@@ -153,27 +152,6 @@ namespace BeatSaberStreamInfo
                     info.energy = -2;
             }
         }
-
-        private void OnContinueClick(ResultsViewController obj)
-        {
-            Console.WriteLine("[StreamInfo] Continue pressed. Resetting...");
-
-            InSong = false;
-            writer.Cancel();
-            ats = null;
-            File.WriteAllText(Path.Combine(dir, "SongName.txt"), "");
-
-            Console.WriteLine("[StreamInfo] Done! Ready for next song.");
-
-            info.SetDefault();
-            overlay.UpdateText(info.GetVal("multiplier"),
-                            info.GetVal("score"),
-                            0,
-                            "0:00 / 0:00 (0%)",
-                            info.GetVal("combo"),
-                            info.GetVal("notes_hit") + "/" + info.GetVal("notes_total"),
-                            info.GetVal("energy"));
-        }
         
         private void Overlay_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -191,31 +169,6 @@ namespace BeatSaberStreamInfo
         }
         private void InitTasks()
         {
-            job = delegate
-            {
-                while (InSong && overlayEnabled)
-                {
-
-                    if (ats != null)
-                    {
-                        string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
-                        string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                        string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
-
-
-                        overlay.UpdateText(info.GetVal("multiplier"),
-                            info.GetVal("score"),
-                            ScoreController.MaxScoreForNumberOfNotes(info.notes_total),
-                            time + " / " + totaltime + " (" + percent + "%)",
-                            info.GetVal("combo"),
-                            info.GetVal("notes_hit") + "/" + info.GetVal("notes_total"),
-                            info.GetVal("energy"));
-                    }
-                    Thread.Sleep(overlayRefreshRate);
-                }
-            };
-            writer = new HMTask(job);
-
             StartJob = delegate
             {
                 Console.WriteLine("[StreamInfo] Entered song scene. Initializing...");
@@ -223,9 +176,6 @@ namespace BeatSaberStreamInfo
                 EnergyReached0 = false;
                 if (BailOutInstalled)
                     ResetBailedOut();
-                writer = new HMTask(job);
-                writer.Run();
-                highestCombo = 0;
 
                 Console.WriteLine("[StreamInfo] Finding controllers and data...");
 
@@ -235,11 +185,11 @@ namespace BeatSaberStreamInfo
 
                 while (ats == null || energy == null || score == null || setupData == null)
                 {
+                    Thread.Sleep(100);
                     ats = UnityEngine.Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
                     energy = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
                     score = UnityEngine.Resources.FindObjectsOfTypeAll<ScoreController>().FirstOrDefault();
                     setupData = UnityEngine.Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
-                    Task.Delay(100);
                 }
                 Console.WriteLine("[StreamInfo] Found controllers and data.");
 
@@ -297,23 +247,27 @@ namespace BeatSaberStreamInfo
                                 info.GetVal("notes_hit") + "/" + info.GetVal("notes_total"),
                                 info.GetVal("energy"));
                 }
+
+                while (InSong && overlayEnabled)
+                {
+                    if (ats != null)
+                    {
+                        string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
+                        string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
+                        string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
+
+                        overlay.UpdateText(info.GetVal("multiplier"),
+                            info.GetVal("score"),
+                            ScoreController.MaxScoreForNumberOfNotes(info.notes_total),
+                            time + " / " + totaltime + " (" + percent + "%)",
+                            info.GetVal("combo"),
+                            info.GetVal("notes_hit") + "/" + info.GetVal("notes_total"),
+                            info.GetVal("energy"));
+                    }
+                    Thread.Sleep(overlayRefreshRate);
+                }
             };
             StartTask = new HMTask(StartJob);
-
-            EndJob = delegate
-            {
-                Task.Delay(250);
-                Console.WriteLine("[StreamInfo] Exited song scene. Ready to reset.");
-                var resultsView = UnityEngine.Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
-                while (resultsView == null)
-                {
-                    Task.Delay(100);
-                    UnityEngine.Resources.FindObjectsOfTypeAll<ResultsViewController>().FirstOrDefault();
-                }
-
-                resultsView.continueButtonPressedEvent += OnContinueClick;
-            };
-            EndTask = new HMTask(EndJob);
         }
         
         public void OnApplicationQuit()
