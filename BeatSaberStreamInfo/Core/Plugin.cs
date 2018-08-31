@@ -131,14 +131,20 @@ namespace BeatSaberStreamInfo
         }
         private void OnEnergyChange(float f)
         {
-            if (!EnergyReached0)
-                info.energy = (int)(f * 100);
-            else
+            if (BailOutInstalled && BailOutEnabled() && BailedOut())
             {
-                if (BailOutInstalled)
-                    info.energy = -1;
+                EnergyReached0 = true;
+                info.energy = -1;
+            }
+            else if (!EnergyReached0)
+            {
+                if (f > 0)
+                    info.energy = (int)(f * 100);
                 else
+                {
+                    EnergyReached0 = true;
                     info.energy = -2;
+                }
             }
         }
         private void OnEnergyFail()
@@ -146,10 +152,7 @@ namespace BeatSaberStreamInfo
             if (!EnergyReached0)
             {
                 EnergyReached0 = true;
-                if (BailOutInstalled)
-                    info.energy = -1;
-                else
-                    info.energy = -2;
+                info.energy = -2;
             }
         }
         
@@ -166,6 +169,10 @@ namespace BeatSaberStreamInfo
         private bool BailedOut()
         {
             return BailOutModePlugin.BailedOut;
+        }
+        private bool BailOutEnabled()
+        {
+            return BailOutModePlugin.shouldIBail;
         }
         private void InitTasks()
         {
