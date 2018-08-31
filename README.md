@@ -22,8 +22,10 @@ Add the .dll to the Plugins folder of your game and launch the game. Default set
 
 ## Usage
 
+Right click anywhere to open a dialog box to view these options **OR** press the shortcut for each:
+
 Press **`L`** to toggle locking the elements in the overlay. Click and drag to move them around.
 
 Press **`R`** to reload the window. This reloads config settings and will fix any issues with the background image stretching.
 
-The song name is written to `UserData/StreamInfo/SongName.txt` in the format **`"[Song Name]" by [Song Subtitle] - [Song Author]`**
+Accessible only via the right click menu, reset all positions to default.
