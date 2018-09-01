@@ -112,61 +112,36 @@ namespace BeatSaberStreamInfo
         }
         public void UpdateText(string multiplier, string score, int maxscore, string progress, string combo, string notes, string energy)
         {
-            int test = 0;
-            try
+            int percent = Convert.ToInt32(energy);
+            energy = "HP  (" + percent + "%)  ";
+            if (percent == -1)
+                energy = "BAILED OUT";
+            else if (percent == -2)
+                energy = "FAILED";
+            else if (percent == -3)
+                energy = "NO FAIL";
+            else
             {
-                test++;
-                int percent = Convert.ToInt32(energy);
-                test++;
-                energy = "HP  (" + percent + "%)  ";
-                test++;
-                if (percent == -1)
-                    energy = "BAILED OUT";
-                else if (percent == -2)
-                    energy = "FAILED";
-                else if (percent == -3)
-                    energy = "NO FAIL";
-                else
-                {
-                    test++;
-                    int count = Convert.ToInt32(percent) / 2;
-                    test++;
-                    for (int i = 0; i < count; i++)
-                        energy += "█";
-                    test++;
-                    for (int i = 0; i < 50 - count; i++)
-                        energy += "░";
-                    test++;
-                }
-                float acc = 0f;
-                test++;
-
-                if (maxscore != 0)
-                    acc = (float)Convert.ToInt32(score) / maxscore;
-                test++;
-                string perc = (Mathf.Clamp(acc, 0.0f, 1.0f) * 100.0f).ToString("F1") + "%";
-                test++;
-                if (maxscore == 0)
-                    perc = "0%";
-
-                test++;
-                if (label_multiplier != null) label_multiplier.Text = multiplier + "x";
-                test++;
-                if (label_score != null) label_score.Text = score;
-                test++;
-                if (label_progress != null) label_progress.Text = progress;
-                test++;
-                if (label_combo != null) label_combo.Text = combo;
-                test++;
-                if (label_notes != null) label_notes.Text = notes + " - " + GetRank(Convert.ToInt32(score), acc, maxscore) + " (" + perc + ")";
-                test++;
-                if (label_energy != null) label_energy.Text = energy;
-                test++;
+                int count = Convert.ToInt32(percent) / 2;
+                for (int i = 0; i < count; i++)
+                    energy += "█";
+                for (int i = 0; i < 50 - count; i++)
+                    energy += "░";
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(test + ": " + e.Message);
-            }
+            float acc = 0f;
+
+            if (maxscore != 0)
+                acc = (float)Convert.ToInt32(score) / maxscore;
+            string perc = (Mathf.Clamp(acc, 0.0f, 1.0f) * 100.0f).ToString("F1") + "%";
+            if (maxscore == 0)
+                perc = "0%";
+
+            if (label_multiplier != null) label_multiplier.Text = multiplier + "x";
+            if (label_score != null) label_score.Text = score;
+            if (label_progress != null) label_progress.Text = progress;
+            if (label_combo != null) label_combo.Text = combo;
+            if (label_notes != null) label_notes.Text = notes + " - " + GetRank(Convert.ToInt32(score), acc, maxscore) + " (" + perc + ")";
+            if (label_energy != null) label_energy.Text = energy;
         }
         private void UpdateAlign()
         {
