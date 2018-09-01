@@ -16,6 +16,8 @@ namespace BeatSaberStreamInfo
         public string Version => "1.0.0";
 
         private AudioTimeSyncController ats;
+        private ScoreController score;
+
         public static readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
         private readonly string[] env = { "DefaultEnvironment", "BigMirrorEnvironment", "TriangleEnvironment", "NiceEnvironment" };
 
@@ -27,6 +29,8 @@ namespace BeatSaberStreamInfo
         Action StartJob;
         HMTask OverlayTask;
         HMTask StartTask;
+
+        int totalrun = 0;
 
         Overlay overlay;
         
@@ -89,13 +93,27 @@ namespace BeatSaberStreamInfo
                     Console.WriteLine("[StreamInfo] Exited song scene.");
 
                     InSong = false;
-                    StartTask.Cancel();
                     ats = null;
 
                     Console.WriteLine("[StreamInfo] Ready for next song.");
                 }
                 else if (env.Contains(arg1.name))
                 {
+                    if (score != null)
+                    {
+                        score.comboDidChangeEvent -= OnComboChange;
+                        score.multiplierDidChangeEvent -= OnMultiplierChange;
+                        score.noteWasMissedEvent -= OnNoteMiss;
+                        score.noteWasCutEvent -= OnNoteCut;
+                        score.scoreDidChangeEvent -= OnScoreChange;
+
+                        score = null;
+                    }
+                    InSong = false;
+                    StartTask.Cancel();
+
+                    totalrun++;
+
                     StartTask = new HMTask(StartJob);
                     StartTask.Run();
                 }
@@ -181,13 +199,13 @@ namespace BeatSaberStreamInfo
                 Console.WriteLine("[StreamInfo] Entered song scene. Initializing...");
                 InSong = true;
                 EnergyReached0 = false;
-                if (BailOutInstalled)
-                    ResetBailedOut();
+                
+                info.SetDefault();
 
                 Console.WriteLine("[StreamInfo] Finding controllers and data...");
 
                 GameEnergyCounter energy = null;
-                ScoreController score = null;
+                score = null;
                 MainGameSceneSetupData setupData = null;
 
                 while (ats == null || energy == null || score == null || setupData == null)
@@ -242,34 +260,27 @@ namespace BeatSaberStreamInfo
 
                 if (noFail)
                     info.energy = -3;
-                
-                if (overlayEnabled)
-                {
-                    Console.WriteLine("[StreamInfo] Updating overlay...");
-                    overlay.UpdateText(info.GetVal("multiplier"),
-                                info.GetVal("score"),
-                                ScoreController.MaxScoreForNumberOfNotes(info.notes_total),
-                                progress,
-                                info.GetVal("combo"),
-                                info.GetVal("notes_hit") + "/" + info.GetVal("notes_total"),
-                                info.GetVal("energy"));
-                }
 
-                while (InSong && overlayEnabled)
+                int temp = totalrun;
+                
+                while (InSong && overlayEnabled && temp == totalrun)
                 {
                     if (ats != null)
                     {
                         string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
                         string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
                         string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
-
-                        overlay.UpdateText(info.GetVal("multiplier"),
+                        
+                        overlay.UpdateText(
+                            info.GetVal("multiplier"),
                             info.GetVal("score"),
                             ScoreController.MaxScoreForNumberOfNotes(info.notes_total),
                             time + " / " + totaltime + " (" + percent + "%)",
                             info.GetVal("combo"),
                             info.GetVal("notes_hit") + "/" + info.GetVal("notes_total"),
                             info.GetVal("energy"));
+
+                        Console.WriteLine(temp);
                     }
                     Thread.Sleep(overlayRefreshRate);
                 }
