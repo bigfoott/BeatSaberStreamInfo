@@ -30,7 +30,7 @@ namespace BeatSaberStreamInfo
         HMTask OverlayTask;
         HMTask StartTask;
 
-        int totalrun = 0;
+        bool stopThread = false;
 
         Overlay overlay;
         
@@ -109,10 +109,10 @@ namespace BeatSaberStreamInfo
 
                         score = null;
                     }
-                    InSong = false;
-                    StartTask.Cancel();
 
-                    totalrun++;
+                    InSong = false;
+                    stopThread = true;
+                    StartTask.Cancel();
 
                     StartTask = new HMTask(StartJob);
                     StartTask.Run();
@@ -260,10 +260,8 @@ namespace BeatSaberStreamInfo
 
                 if (noFail)
                     info.energy = -3;
-
-                int temp = totalrun;
                 
-                while (InSong && overlayEnabled && temp == totalrun)
+                while (InSong && overlayEnabled && !stopThread)
                 {
                     if (ats != null)
                     {
@@ -279,11 +277,10 @@ namespace BeatSaberStreamInfo
                             info.GetVal("combo"),
                             info.GetVal("notes_hit") + "/" + info.GetVal("notes_total"),
                             info.GetVal("energy"));
-
-                        Console.WriteLine(temp);
                     }
                     Thread.Sleep(overlayRefreshRate);
                 }
+                stopThread = false;
             };
             StartTask = new HMTask(StartJob);
         }
