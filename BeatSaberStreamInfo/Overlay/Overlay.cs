@@ -135,13 +135,13 @@ namespace BeatSaberStreamInfo
             string perc = (Mathf.Clamp(acc, 0.0f, 1.0f) * 100.0f).ToString("F1") + "%";
             if (maxscore == 0)
                 perc = "0%";
-
-            if (label_multiplier != null) label_multiplier.Text = multiplier + "x";
-            if (label_score != null) label_score.Text = score;
-            if (label_progress != null) label_progress.Text = progress;
-            if (label_combo != null) label_combo.Text = combo;
-            if (label_notes != null) label_notes.Text = notes + " - " + GetRank(Convert.ToInt32(score), acc, maxscore) + " (" + perc + ")";
-            if (label_energy != null) label_energy.Text = energy;
+            
+            label_multiplier.Text = multiplier + "x";
+            label_score.Text = score;
+            label_progress.Text = progress;
+            label_combo.Text = combo;
+            label_notes.Text = notes + " - " + GetRank(Convert.ToInt32(score), acc, maxscore) + " (" + perc + ")";
+            label_energy.Text = energy;
         }
         private void UpdateAlign()
         {

@@ -13,8 +13,8 @@ namespace BeatSaberStreamInfo
     public class Plugin : IPlugin
     {
         public string Name => "Beat Saber Stream Info";
-        public string Version => "1.0.0";
-
+        public string Version => "1.0.1";
+        
         private AudioTimeSyncController ats;
         public static readonly string dir = Path.Combine(Environment.CurrentDirectory, "UserData/StreamInfo");
         private readonly string[] env = { "DefaultEnvironment", "BigMirrorEnvironment", "TriangleEnvironment", "NiceEnvironment" };
@@ -22,21 +22,21 @@ namespace BeatSaberStreamInfo
         private bool InSong;
         private bool EnergyReached0;
         private bool BailOutInstalled;
-        private int overlayRefreshRate;
+        public static int overlayRefreshRate;
         private SongInfo info;
-        Action StartJob;
-        HMTask OverlayTask;
-        HMTask StartTask;
+        private Action StartJob;
+        private HMTask OverlayTask;
+        private HMTask StartTask;
+        
+        private Overlay overlay;
 
-        Overlay overlay;
+        private string _songName;
+        private string _songAuthor;
+        private string _songSub;
 
-        string _songName;
-        string _songAuthor;
-        string _songSub;
+        private static int songCount = 0;
 
-        int songCount = 0;
-
-        bool overlayEnabled = false;
+        private bool overlayEnabled = false;
 
         public void OnApplicationStart()
         {
@@ -50,8 +50,6 @@ namespace BeatSaberStreamInfo
                 Console.WriteLine("[StreamInfo] BailOut plugin not found.");
 
             info = new SongInfo();
-
-            InitTasks();
 
             if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "UserData")))
                 Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "UserData"));
@@ -98,6 +96,88 @@ namespace BeatSaberStreamInfo
                 }
                 else if (env.Contains(arg1.name))
                 {
+                    StartJob = delegate
+                    {
+                        Console.WriteLine("[StreamInfo] Entered song scene. Initializing...");
+                        InSong = true;
+                        EnergyReached0 = false;
+                        int runID = 1 + songCount++;
+
+                        Console.WriteLine("[StreamInfo] Finding controllers and data...");
+
+                        GameEnergyCounter energy = null;
+                        ScoreController score = null;
+                        MainGameSceneSetupData setupData = null;
+
+                        while (ats == null || energy == null || score == null || setupData == null)
+                        {
+                            Thread.Sleep(150);
+                            ats = UnityEngine.Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
+                            energy = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
+                            score = UnityEngine.Resources.FindObjectsOfTypeAll<ScoreController>().FirstOrDefault();
+                            setupData = UnityEngine.Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
+                        }
+                        Console.WriteLine("[StreamInfo] Found controllers and data.");
+
+                        bool noFail = false;
+
+                        if (setupData != null)
+                        {
+                            Console.WriteLine("[StreamInfo] Getting song name data...");
+                            var level = setupData.difficultyLevel.level;
+
+                            _songName = level.songName;
+                            _songSub = level.songSubName;
+                            _songAuthor = level.songAuthorName;
+
+                            string songname = "\"" + _songName + "\" by " + _songSub + " - " + _songAuthor;
+                            File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "               ");
+
+                            noFail = setupData.gameplayOptions.noEnergy;
+                        }
+                        Console.WriteLine("[StreamInfo] Hooking Events...");
+                        if (score != null)
+                        {
+                            score.comboDidChangeEvent += OnComboChange;
+                            score.multiplierDidChangeEvent += OnMultiplierChange;
+                            score.noteWasMissedEvent += OnNoteMiss;
+                            score.noteWasCutEvent += OnNoteCut;
+                            score.scoreDidChangeEvent += OnScoreChange;
+                        }
+                        if (energy != null)
+                        {
+                            energy.gameEnergyDidChangeEvent += OnEnergyChange;
+                            if (!BailOutInstalled)
+                                energy.gameEnergyDidReach0Event += OnEnergyFail;
+                        }
+                        info.SetDefault();
+                        if (noFail)
+                        {
+                            EnergyReached0 = true;
+                            info.energy = -3; 
+                        }
+                        Console.WriteLine("[StreamInfo] Starting update loop...");
+                        while (InSong && overlayEnabled && runID == songCount)
+                        {
+                            if (ats != null)
+                            {
+                                string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
+                                string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
+                                string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
+
+                                overlay.UpdateText(info.GetVal("multiplier"),
+                                        info.GetVal("score"),
+                                        ScoreController.MaxScoreForNumberOfNotes(info.notes_total),
+                                        time + " / " + totaltime + " (" + percent + "%)",
+                                        info.GetVal("combo"),
+                                        info.GetVal("notes_hit") + "/" + info.GetVal("notes_total"),
+                                        info.GetVal("energy"));
+                            }
+                            Thread.Sleep(overlayRefreshRate);
+                        }
+                        Console.WriteLine("[SongInfo] Thread completed: " + runID);
+
+                    };
                     StartTask = new HMTask(StartJob);
                     StartTask.Run();
                 }
@@ -171,88 +251,6 @@ namespace BeatSaberStreamInfo
         private bool BailOutEnabled()
         {
             return BailOutModePlugin.shouldIBail;
-        }
-        private void InitTasks()
-        {
-            StartJob = delegate
-            {
-                Console.WriteLine("[StreamInfo] Entered song scene. Initializing...");
-                InSong = true;
-                EnergyReached0 = false;
-
-                Console.WriteLine("[StreamInfo] Finding controllers and data...");
-
-                GameEnergyCounter energy = null;
-                ScoreController score = null;
-                MainGameSceneSetupData setupData = null;
-
-                while (ats == null || energy == null || score == null || setupData == null)
-                {
-                    Thread.Sleep(100);
-                    ats = UnityEngine.Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().FirstOrDefault();
-                    energy = UnityEngine.Resources.FindObjectsOfTypeAll<GameEnergyCounter>().FirstOrDefault();
-                    score = UnityEngine.Resources.FindObjectsOfTypeAll<ScoreController>().FirstOrDefault();
-                    setupData = UnityEngine.Resources.FindObjectsOfTypeAll<MainGameSceneSetupData>().FirstOrDefault();
-                }
-                Console.WriteLine("[StreamInfo] Found controllers and data.");
-                
-                bool noFail = false;
-
-                if (setupData != null)
-                {
-                    Console.WriteLine("[StreamInfo] Getting song name data...");
-                    var level = setupData.difficultyLevel.level;
-
-                    _songName = level.songName;
-                    _songSub = level.songSubName;
-                    _songAuthor = level.songAuthorName;
-
-                    string songname = "\"" + _songName + "\" by " + _songSub + " - " + _songAuthor;
-                    File.WriteAllText(Path.Combine(dir, "SongName.txt"), songname + "               ");
-
-                    noFail = setupData.gameplayOptions.noEnergy;
-                }
-                Console.WriteLine("[StreamInfo] Hooking Events...");
-                if (score != null)
-                {
-                    score.comboDidChangeEvent += OnComboChange;
-                    score.multiplierDidChangeEvent += OnMultiplierChange;
-                    score.noteWasMissedEvent += OnNoteMiss;
-                    score.noteWasCutEvent += OnNoteCut;
-                    score.scoreDidChangeEvent += OnScoreChange;
-                }
-                if (energy != null)
-                {
-                    energy.gameEnergyDidChangeEvent += OnEnergyChange;
-                    if (!BailOutInstalled)
-                        energy.gameEnergyDidReach0Event += OnEnergyFail;
-                }
-
-                info.SetDefault();
-
-                if (noFail)
-                    info.energy = -3;
-                int runID = 1 + songCount++;
-                while (InSong && overlayEnabled && runID == songCount)
-                {
-                    if (ats != null)
-                    {
-                        string time = Math.Floor(ats.songTime / 60).ToString("N0") + ":" + Math.Floor(ats.songTime % 60).ToString("00");
-                        string totaltime = Math.Floor(ats.songLength / 60).ToString("N0") + ":" + Math.Floor(ats.songLength % 60).ToString("00");
-                        string percent = ((ats.songTime / ats.songLength) * 100).ToString("N0");
-
-                        overlay.UpdateText(info.GetVal("multiplier"),
-                            info.GetVal("score"),
-                            ScoreController.MaxScoreForNumberOfNotes(info.notes_total),
-                            time + " / " + totaltime + " (" + percent + "%)",
-                            info.GetVal("combo"),
-                            info.GetVal("notes_hit") + "/" + info.GetVal("notes_total"),
-                            info.GetVal("energy"));
-                    }
-                    Thread.Sleep(overlayRefreshRate);
-                }
-            };
-            StartTask = new HMTask(StartJob);
         }
 
         public void OnApplicationQuit()
