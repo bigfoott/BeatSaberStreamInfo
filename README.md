@@ -1,4 +1,4 @@
-![title](https://bigft.io/u/i/3GMC3.png)
+![title](https://bigft.io/u/i/XLd7l.png)
 
 Output BeatSaber game data to an external overlay to be used on stream.
 
